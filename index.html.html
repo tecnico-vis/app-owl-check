@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a3a8e">
+<title>VIS Group — App Vigilantes</title>
+<style>
+:root {
+  --vis-blue: #1a3a8e;
+  --vis-blue-dark: #142d6d;
+  --vis-blue-light: #2c4ea8;
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --border-2: #d1d5db;
+  --text: #1f2937;
+  --text-2: #6b7280;
+  --text-3: #9ca3af;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body {
+  height: 100%; width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", system-ui, sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+button, input { font-family: inherit; font-size: inherit; color: inherit; }
+button { background: none; border: none; cursor: pointer; }
+
+/* ===== App container ===== */
+.app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--surface);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Screens ===== */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  background: var(--surface);
+}
+.screen.active { display: flex; }
+
+/* ===== Header ===== */
+.header {
+  height: 56px;
+  flex-shrink: 0;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--border);
+  padding-top: env(safe-area-inset-top);
+  height: calc(56px + env(safe-area-inset-top));
+}
+.header.with-back .header-icon-btn {
+  color: var(--text);
+}
+.header-icon-btn {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text);
+}
+.header-icon-btn svg { width: 24px; height: 24px; stroke-width: 2; }
+.header-title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: center;
+  padding-right: 44px; /* compensa back button per centrare */
+}
+.header.has-action .header-title { padding-right: 0; }
+
+/* ===== Bottom bar (blu) ===== */
+.bottom-bar {
+  flex-shrink: 0;
+  background: var(--vis-blue);
+  height: 64px;
+  position: relative;
+  padding-bottom: env(safe-area-inset-bottom);
+  height: calc(64px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+.bottom-bar.with-fab {
+  justify-content: space-between;
+}
+.bottom-bar .menu-btn {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+}
+.bottom-bar .menu-btn svg { width: 22px; height: 22px; }
+.bottom-bar .logout-btn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  color: white;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  text-transform: uppercase;
+  height: 44px;
+}
+.bottom-bar .logout-btn svg { width: 20px; height: 20px; }
+
+/* FAB centrale (sopra la bottom-bar) */
+.fab {
+  position: absolute;
+  left: 50%;
+  top: -28px;
+  transform: translateX(-50%);
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--vis-blue);
+  border: 4px solid var(--surface);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.18);
+  z-index: 2;
+}
+.fab svg { width: 22px; height: 22px; stroke-width: 2; }
+.fab:active { background: var(--vis-blue-light); }
+
+/* ===== Logo VIS (SVG icon) ===== */
+.logo-vis {
+  display: inline-block;
+}
+
+/* ===== LOGIN screen ===== */
+#login {
+  background: var(--surface);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.login-content {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.login-content .logo-vis {
+  margin-bottom: 32px;
+}
+.login-spacer { height: 8px; }
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.login-form .field input {
+  width: 100%;
+  padding: 14px 14px;
+  border: 1px solid var(--border-2);
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 16px;
+}
+.login-form .field input:focus { outline: 2px solid var(--vis-blue); outline-offset: -1px; border-color: var(--vis-blue); }
+.login-form .login-btn {
+  background: var(--vis-blue);
+  color: white;
+  padding: 14px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+.login-form .login-btn:active { background: var(--vis-blue-dark); }
+.login-form .login-btn:disabled { opacity: 0.5; }
+.login-error {
+  background: #fef2f2;
+  color: var(--danger);
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: center;
+  display: none;
+}
+.login-error.show { display: block; }
+.login-hint {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+.login-hint code {
+  font-family: ui-monospace, monospace;
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--vis-blue);
+}
+
+/* ===== HOME screen ===== */
+#home .content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 32px 24px;
+  text-align: center;
+}
+#home .greeting {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+#home .subtitle {
+  font-size: 16px;
+  color: var(--text-2);
+  margin-bottom: 8px;
+}
+#home .vigilante-name {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-bottom: 32px;
+}
+#home .big-logo {
+  margin: auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== Drawer ===== */
+.drawer-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 50;
+}
+.drawer-overlay.open { opacity: 1; pointer-events: auto; }
+.drawer {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 80%;
+  max-width: 320px;
+  background: var(--surface);
+  z-index: 51;
+  transform: translateX(-100%);
+  transition: transform 0.22s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+.drawer.open { transform: translateX(0); }
+.drawer-header {
+  padding: 24px 20px 24px;
+  padding-top: calc(24px + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--border);
+}
+.drawer-menu { flex: 1; padding: 8px 0; }
+.drawer-menu .item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  font-size: 16px;
+  color: var(--text);
+  width: 100%;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.drawer-menu .item svg {
+  width: 22px; height: 22px;
+  color: var(--text-2);
+  stroke-width: 1.8;
+}
+.drawer-menu .item.active {
+  color: var(--vis-blue);
+  background: rgba(26, 58, 142, 0.04);
+}
+.drawer-menu .item.active svg { color: var(--vis-blue); }
+.drawer-footer {
+  padding: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  background: var(--vis-blue);
+}
+.drawer-footer .logout-btn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  color: white;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  text-transform: uppercase;
+  padding: 14px;
+}
+.drawer-footer .logout-btn svg { width: 18px; height: 18px; }
+
+/* ===== Check-in list ===== */
+#checkins .content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 80px;
+}
+.checkin-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.checkin-check {
+  flex-shrink: 0;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--vis-blue);
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  margin-top: 2px;
+}
+.checkin-check svg { width: 22px; height: 22px; stroke-width: 2.5; }
+.checkin-info {
+  flex: 1;
+  min-width: 0;
+}
+.checkin-info .cliente {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.checkin-info .struttura,
+.checkin-info .time {
+  font-size: 13px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.checkin-info svg {
+  width: 14px; height: 14px;
+  flex-shrink: 0;
+  color: var(--text-2);
+  stroke-width: 1.8;
+}
+.checkin-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-3);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.pending-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--warning);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
+/* ===== SCAN screen ===== */
+#scan {
+  background: var(--surface);
+  align-items: center;
+  justify-content: flex-start;
+}
+#scan .header { border-bottom: none; }
+#scan .scan-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 24px 100px;
+  width: 100%;
+}
+.scan-pulse-wrap {
+  position: relative;
+  width: 200px; height: 200px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 32px;
+}
+.scan-pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--vis-blue);
+  animation: ring-pulse 1.8s ease-out infinite;
+  opacity: 0;
+}
+.scan-pulse-ring.r2 { animation-delay: 0.6s; }
+.scan-pulse-ring.r3 { animation-delay: 1.2s; }
+@keyframes ring-pulse {
+  0% { transform: scale(0.55); opacity: 0; }
+  20% { opacity: 0.9; }
+  100% { transform: scale(1); opacity: 0; }
+}
+.scan-pulse-core {
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  background: var(--vis-blue);
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  z-index: 2;
+}
+.scan-pulse-core svg { width: 50px; height: 50px; stroke-width: 1.8; }
+
+.scan-status-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.scan-status-msg {
+  font-size: 15px;
+  color: var(--text-2);
+  text-align: center;
+  margin-bottom: 24px;
+  max-width: 300px;
+  line-height: 1.5;
+}
+.scan-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 280px;
+}
+.scan-buttons button {
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.scan-btn-primary { background: var(--vis-blue); color: white; }
+.scan-btn-primary:active { background: var(--vis-blue-dark); }
+.scan-btn-secondary {
+  background: white; color: var(--vis-blue);
+  border: 1px solid var(--vis-blue);
+}
+.scan-btn-cancel {
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+/* Stato scan: success */
+#scan.success .scan-pulse-ring { display: none; }
+#scan.success .scan-pulse-core { background: var(--success); transform: scale(1.1); transition: all 0.3s; }
+#scan.error .scan-pulse-ring { display: none; }
+#scan.error .scan-pulse-core { background: var(--danger); }
+
+/* ===== Result modal ===== */
+.modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+}
+.modal.open { display: flex; }
+.modal-card {
+  background: var(--surface);
+  width: 100%;
+  border-radius: 16px 16px 0 0;
+  padding: 24px 20px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  animation: slide-up 0.22s ease-out;
+}
+@keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-card .icon-wrap {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+}
+.modal-card .icon-wrap svg { width: 36px; height: 36px; stroke-width: 2.5; }
+.modal-card.error .icon-wrap { background: rgba(239, 68, 68, 0.12); color: var(--danger); }
+.modal-card .title {
+  font-size: 18px; font-weight: 600;
+  text-align: center; margin-bottom: 6px;
+}
+.modal-card .msg {
+  font-size: 14px; color: var(--text-2);
+  text-align: center; margin-bottom: 16px;
+  line-height: 1.5;
+}
+.modal-card .details {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.modal-card .details .row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 13px;
+}
+.modal-card .details .row strong {
+  min-width: 80px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+.modal-card .details .row span {
+  color: var(--text);
+  flex: 1;
+  word-break: break-word;
+}
+.modal-card .actions {
+  display: flex;
+  gap: 10px;
+}
+.modal-card .actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.modal-card .actions .primary {
+  background: var(--vis-blue);
+  color: white;
+}
+.modal-card .actions .secondary {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Simulator picker */
+.sim-list {
+  max-height: 50vh;
+  overflow-y: auto;
+  margin: 0 -20px 16px;
+}
+.sim-list .sim-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.sim-list .sim-item:active { background: var(--bg); }
+.sim-list .sim-item strong { display: block; color: var(--text); font-weight: 500; margin-bottom: 2px; }
+.sim-list .sim-item span { color: var(--text-2); font-size: 12px; }
+
+/* ===== Toast ===== */
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 100px;
+  transform: translate(-50%, 20px);
+  background: var(--text);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 22px;
+  font-size: 13px;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.22s;
+  white-space: nowrap;
+  max-width: 90%;
+}
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* Online/offline indicator */
+.connection-pill {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 8px);
+  right: 8px;
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px;
+  color: var(--text-3);
+  background: var(--bg);
+  padding: 3px 8px;
+  border-radius: 10px;
+  z-index: 5;
+}
+.connection-pill .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+}
+.connection-pill.offline .dot { background: var(--text-3); }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ============ LOGIN ============ -->
+  <div class="screen active" id="login">
+    <div class="login-content">
+      <div class="logo-vis"></div>
+      <div class="login-spacer"></div>
+      <form class="login-form" onsubmit="event.preventDefault(); doLogin();">
+        <div class="field"><input type="text" id="login-username" placeholder="Username" autocomplete="username" autocapitalize="off" autocorrect="off"></div>
+        <div class="field"><input type="password" id="login-password" placeholder="Password" autocomplete="current-password"></div>
+        <div class="login-error" id="login-error"></div>
+        <button type="submit" class="login-btn" id="login-btn">Accedi</button>
+      </form>
+      <div class="login-hint">
+        Demo: prova con <code>delta5</code> / <code>d5Pass24</code><br>
+        oppure <code>kappa.basic</code> / <code>kb2024Az</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ HOME ============ -->
+  <div class="screen" id="home">
+    <div class="header">
+      <button class="header-icon-btn" onclick="toggleDrawer(true)" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
+      </button>
+      <div class="header-title"></div>
+    </div>
+    <div class="content">
+      <div class="greeting">Benvenuto</div>
+      <div class="subtitle">Effettua un check-in</div>
+      <div class="vigilante-name" id="home-vigilante-name"></div>
+      <div class="big-logo" id="home-big-logo"></div>
+    </div>
+    <div class="bottom-bar with-fab">
+      <button class="menu-btn" onclick="toggleDrawer(true)" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round" stroke-width="2"/></svg>
+      </button>
+      <button class="fab" onclick="goToScan()" aria-label="Effettua check-in">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/>
+        </svg>
+      </button>
+      <div style="width:44px"></div>
+    </div>
+  </div>
+
+  <!-- ============ SCAN ============ -->
+  <div class="screen" id="scan">
+    <div class="header with-back">
+      <button class="header-icon-btn" onclick="goBack('home')" aria-label="Indietro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="header-title">Check-in</div>
+    </div>
+    <div class="scan-content">
+      <div class="scan-pulse-wrap">
+        <div class="scan-pulse-ring"></div>
+        <div class="scan-pulse-ring r2"></div>
+        <div class="scan-pulse-ring r3"></div>
+        <div class="scan-pulse-core">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+            <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+            <line x1="12" y1="20" x2="12.01" y2="20"/>
+          </svg>
+        </div>
+      </div>
+      <div class="scan-status-title" id="scan-title">Avvicina al tag</div>
+      <div class="scan-status-msg" id="scan-msg">Tieni il telefono vicino al tag NFC della struttura per registrare il check-in.</div>
+      <div class="scan-buttons">
+        <button class="scan-btn-secondary" onclick="openSimulator()">Simula scansione</button>
+        <button class="scan-btn-cancel" onclick="goBack('home')">Annulla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CHECK-INS LIST ============ -->
+  <div class="screen" id="checkins">
+    <div class="header with-back">
+      <button class="header-icon-btn" onclick="goBack('home')" aria-label="Indietro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="header-title">Check-in effettuati</div>
+      <button class="header-icon-btn" onclick="showToast('Filtri in arrivo')" aria-label="Filtri">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      </button>
+    </div>
+    <div class="content" id="checkins-list"></div>
+    <div class="bottom-bar with-fab">
+      <button class="menu-btn" onclick="toggleDrawer(true)" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round" stroke-width="2"/></svg>
+      </button>
+      <button class="fab" onclick="goTo('home')" aria-label="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/>
+        </svg>
+      </button>
+      <div style="width:44px"></div>
+    </div>
+  </div>
+
+  <!-- ============ Drawer ============ -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="toggleDrawer(false)"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div class="logo-vis" id="drawer-logo"></div>
+    </div>
+    <div class="drawer-menu" id="drawer-menu">
+      <button class="item" data-screen="home" onclick="navFromDrawer('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="item" data-screen="checkins" onclick="navFromDrawer('checkins')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <span>Check-in</span>
+      </button>
+    </div>
+    <div class="drawer-footer">
+      <button class="logout-btn" onclick="doLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>LOGOUT</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ Modali / Toast ============ -->
+  <div class="modal" id="modal"><div class="modal-card" id="modal-card"></div></div>
+  <div class="toast" id="toast"></div>
+  <div class="connection-pill" id="conn-pill"><div class="dot"></div><span>online</span></div>
+</div>
+
+<script>
+// ============================================================
+// LOGO VIS — JPG embedded (logo reale fornito dall'utente)
+// ============================================================
+const VIS_LOGO_DATA_URL = 'data:image/jpeg;base64,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';
+function visLogoImg(size) {
+  return `<img src="${VIS_LOGO_DATA_URL}" alt="VIS Group" width="${size}" height="${size}" style="display:block;border-radius:8px">`;
+}
+
+// Inietta il logo nei vari posti
+document.querySelectorAll('.logo-vis').forEach(el => {
+  if (el.closest('#login')) el.innerHTML = visLogoImg(140);
+  else if (el.id === 'home-big-logo') el.innerHTML = visLogoImg(240);
+  else if (el.id === 'drawer-logo') el.innerHTML = visLogoImg(120);
+  else el.innerHTML = visLogoImg(56);
+});
+
+// ============================================================
+// HELPERS
+// ============================================================
+const uid = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    try { return crypto.randomUUID(); } catch (_) {}
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+};
+const nowISO = () => new Date().toISOString();
+const escape = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const formatDateTime = iso => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}-${pad(d.getMonth()+1)}-${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+const clienteDisplay = c => {
+  if (!c) return '';
+  const persona = `${c.cognome || ''} ${c.nome || ''}`.trim();
+  if (c.ragione_sociale && persona && c.ragione_sociale !== persona) return `${c.ragione_sociale}, ${persona}`;
+  return c.ragione_sociale || persona || 'Senza nome';
+};
+
+// ============================================================
+// STORAGE (window.storage con fallback in-memory)
+// ============================================================
+const Storage = (() => {
+  const mem = {};
+  const has = typeof window !== 'undefined' && window.storage
+    && typeof window.storage.get === 'function';
+  return {
+    async get(key) {
+      if (has) { try { return await window.storage.get(key); } catch (_) {} }
+      return mem[key] != null ? {key, value: mem[key]} : null;
+    },
+    async set(key, value) {
+      if (has) { try { return await window.storage.set(key, value); } catch (_) {} }
+      mem[key] = value;
+    },
+  };
+})();
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  utente: null, // utente loggato
+  vigilante: null, // profilo vigilante associato
+  data: {
+    clienti: [], strutture: [], tipiStrutture: [],
+    tagNfc: [], vigilantes: [], utenti: [],
+    checkins: [], // tutti i check-in fatti localmente da questa app
+  },
+  scanAbortController: null,
+  online: navigator.onLine,
+};
+
+const KEYS = {
+  clienti: 'visapp:v2:clienti',
+  strutture: 'visapp:v2:strutture',
+  tipiStrutture: 'visapp:v2:tipiStrutture',
+  tagNfc: 'visapp:v2:tagNfc',
+  vigilantes: 'visapp:v2:vigilantes',
+  utenti: 'visapp:v2:utenti',
+  checkins: 'visapp:v2:checkins',
+  session: 'visapp:v2:session',
+};
+
+async function loadAll() {
+  for (const [k, key] of Object.entries(KEYS)) {
+    if (k === 'session') continue;
+    try {
+      const r = await Storage.get(key);
+      if (r && r.value) state.data[k] = JSON.parse(r.value);
+    } catch (_) {}
+  }
+}
+async function saveSection(k) {
+  await Storage.set(KEYS[k], JSON.stringify(state.data[k]));
+}
+
+// ============================================================
+// SEED — stessi dati del gestionale admin (per la demo)
+// ============================================================
+async function maybeSeed() {
+  // Se ci sono già utenti, non riseed. Altrimenti popola tutto da zero.
+  if (state.data.utenti.length > 0) return;
+
+  const tipi = ['Abitazione','Condominio','Capannone','Azienda','Cantiere','Ufficio','Spaccio','B&B','Albergo','NEGOZIO']
+    .map(nome => ({id: uid(), nome}));
+  state.data.tipiStrutture = tipi;
+  const tipoId = nome => tipi.find(t => t.nome === nome)?.id;
+
+  const clienti = [
+    {ragione_sociale: 'AKU ITALIA SRL', indirizzo: 'Via Schiavonesca Priula', paese: 'Montebelluna', provincia: 'TV'},
+    {ragione_sociale: 'BasicNet S.p.A', cognome: 'Robe', nome: 'Kappa', indirizzo: 'Largo Maurizio Vitale', paese: 'Torino', provincia: 'TO'},
+    {ragione_sociale: 'ISOPLAM', indirizzo: 'Via E. Mattei', paese: 'Maser', provincia: 'TV'},
+    {ragione_sociale: 'SNAM', indirizzo: 'Via dei Tre Comuni'},
+    {cognome: 'BUZIOL', nome: 'KRISTIAN', indirizzo: 'Via Caenere, 13', paese: 'Montebelluna', provincia: 'TV'},
+    {ragione_sociale: 'PIAZZETTA CARLO', cognome: 'PIAZZETTA', nome: 'CARLO', indirizzo: 'Via Piazzetta'},
+    {ragione_sociale: 'BORDIN DENIS', indirizzo: 'Via Bordin'},
+    {ragione_sociale: 'GALLIERA EMANUELE', indirizzo: 'Via Galliera'},
+  ].map(c => ({id: uid(), attivo: true, ...c}));
+  state.data.clienti = clienti;
+
+  const cl = nome => clienti.find(c => (c.ragione_sociale || `${c.cognome} ${c.nome}`.trim()) === nome)?.id;
+
+  const strutture = [
+    {tipo_struttura_id: tipoId('Capannone'), cliente_id: cl('AKU ITALIA SRL'), nome: 'SEDE PRINCIPALE', indirizzo: 'Via Schiavonesca Priula, 65 Montebelluna'},
+    {tipo_struttura_id: tipoId('Azienda'), cliente_id: cl('BasicNet S.p.A'), nome: 'Robe di Kappa', indirizzo: 'Largo Maurizio Vitale, Torino'},
+    {tipo_struttura_id: tipoId('Azienda'), cliente_id: cl('ISOPLAM'), nome: 'ISOPLAM', indirizzo: 'Via E. Mattei, Maser'},
+    {tipo_struttura_id: tipoId('Azienda'), cliente_id: cl('SNAM'), nome: 'SNAM Tre Comuni', indirizzo: 'Via dei Tre Comuni'},
+    {tipo_struttura_id: tipoId('Abitazione'), cliente_id: cl('BUZIOL KRISTIAN'), nome: 'Casa', indirizzo: 'Via Caenere, 13 Montebelluna'},
+    {tipo_struttura_id: tipoId('Abitazione'), cliente_id: cl('PIAZZETTA CARLO'), nome: 'PIAZZETTA CARLO', indirizzo: 'Via Piazzetta'},
+    {tipo_struttura_id: tipoId('Abitazione'), cliente_id: cl('BORDIN DENIS'), nome: 'BORDIN DENIS - ABITAZIONE', indirizzo: 'Via Bordin'},
+    {tipo_struttura_id: tipoId('Abitazione'), cliente_id: cl('GALLIERA EMANUELE'), nome: 'GALLIERA EMANUELE', indirizzo: 'Via Galliera'},
+  ].map(s => ({id: uid(), attivo: true, ...s}));
+  state.data.strutture = strutture;
+  const sId = nome => strutture.find(s => s.nome === nome)?.id;
+
+  const tags = [
+    {struttura_id: sId('SEDE PRINCIPALE'), descrizione: 'TAG 1 ULTIMA PORTA', codice_nfc: '0411223344A1B2'},
+    {struttura_id: sId('SEDE PRINCIPALE'), descrizione: 'TAG 3 RETRO', codice_nfc: '0411223344A1B5'},
+    {struttura_id: sId('Robe di Kappa'), descrizione: '13 - ROOF GARDEN', codice_nfc: '04AB1213AA0001'},
+    {struttura_id: sId('Robe di Kappa'), descrizione: '12 - CASA ALESSANDRO BOGLIONE', codice_nfc: '04AB1213AA0002'},
+    {struttura_id: sId('Robe di Kappa'), descrizione: '11 - BAGNO 1° PIANO', codice_nfc: '04AB1213AA0003'},
+    {struttura_id: sId('SNAM Tre Comuni'), descrizione: 'TAG 1', codice_nfc: '04CC0001AB0001'},
+    {struttura_id: sId('SNAM Tre Comuni'), descrizione: 'TAG 2', codice_nfc: '04CC0001AB0002'},
+    {struttura_id: sId('Casa'), descrizione: 'TAG INGRESSO', codice_nfc: '04BB0001CA0001'},
+    {struttura_id: sId('PIAZZETTA CARLO'), descrizione: 'TAG INGRESSO', codice_nfc: '04BB0002CA0001'},
+    {struttura_id: sId('BORDIN DENIS - ABITAZIONE'), descrizione: 'TAG INGRESSO', codice_nfc: '04BB0003CA0001'},
+    {struttura_id: sId('GALLIERA EMANUELE'), descrizione: 'TAG INGRESSO', codice_nfc: '04BB0004CA0001'},
+  ].map(t => ({id: uid(), ...t}));
+  state.data.tagNfc = tags;
+
+  const vigilantes = [
+    {cognome: 'basic', nome: 'kappa'},
+    {cognome: 'DELTA 5', nome: ''},
+    {cognome: 'DELTA 1', nome: ''},
+    {cognome: 'BUZIOL', nome: 'KRISTIAN'},
+  ].map(v => ({id: uid(), attivo: true, ...v}));
+  state.data.vigilantes = vigilantes;
+  const vId = cognome => vigilantes.find(v => v.cognome === cognome)?.id;
+
+  state.data.utenti = [
+    {username: 'kappa.basic', password: 'kb2024Az', vigilante_id: vId('basic')},
+    {username: 'delta5', password: 'd5Pass24', vigilante_id: vId('DELTA 5')},
+    {username: 'delta1', password: 'd1Pass24', vigilante_id: vId('DELTA 1')},
+    {username: 'buziol', password: 'buz2024X', vigilante_id: vId('BUZIOL')},
+  ].map(u => ({id: uid(), attivo: true, ...u}));
+
+  for (const k of ['tipiStrutture', 'clienti', 'strutture', 'tagNfc', 'vigilantes', 'utenti']) {
+    await saveSection(k);
+  }
+}
+
+// ============================================================
+// LOGIN / LOGOUT
+// ============================================================
+async function tryRestoreSession() {
+  try {
+    const r = await Storage.get(KEYS.session);
+    if (r && r.value) {
+      const s = JSON.parse(r.value);
+      const u = state.data.utenti.find(u => u.id === s.utente_id);
+      if (u) {
+        return await loginUtente(u);
+      }
+    }
+  } catch (_) {}
+  return false;
+}
+
+async function doLogin() {
+  const u = document.getElementById('login-username').value.trim().toLowerCase();
+  const p = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  err.classList.remove('show');
+
+  if (!u || !p) {
+    err.textContent = 'Inserisci username e password.';
+    err.classList.add('show');
+    return;
+  }
+  const utente = state.data.utenti.find(x => x.username.toLowerCase() === u && x.password === p && x.attivo);
+  if (!utente) {
+    err.textContent = 'Username o password non corretti.';
+    err.classList.add('show');
+    return;
+  }
+  if (!utente.vigilante_id) {
+    err.textContent = 'Account non collegato a un vigilante.';
+    err.classList.add('show');
+    return;
+  }
+  await loginUtente(utente);
+  await Storage.set(KEYS.session, JSON.stringify({utente_id: utente.id}));
+}
+
+async function loginUtente(utente) {
+  state.utente = utente;
+  state.vigilante = state.data.vigilantes.find(v => v.id === utente.vigilante_id);
+  if (!state.vigilante) return false;
+  document.getElementById('login-password').value = '';
+  document.getElementById('home-vigilante-name').textContent =
+    `${state.vigilante.cognome || ''} ${state.vigilante.nome || ''}`.trim();
+  goTo('home');
+  return true;
+}
+
+async function doLogout() {
+  if (state.scanAbortController) {
+    try { state.scanAbortController.abort(); } catch (_) {}
+    state.scanAbortController = null;
+  }
+  state.utente = null;
+  state.vigilante = null;
+  await Storage.set(KEYS.session, '');
+  toggleDrawer(false);
+  goTo('login');
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function goTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === screen));
+  if (screen === 'checkins') renderCheckinsList();
+  if (screen === 'scan') startScan();
+  // Drawer active state
+  document.querySelectorAll('.drawer-menu .item').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === screen);
+  });
+}
+function goBack(target) {
+  if (state.scanAbortController) { try { state.scanAbortController.abort(); } catch (_) {} state.scanAbortController = null; }
+  resetScanUI();
+  goTo(target);
+}
+function goToScan() { goTo('scan'); }
+function navFromDrawer(screen) { toggleDrawer(false); goTo(screen); }
+
+// ============================================================
+// DRAWER
+// ============================================================
+function toggleDrawer(open) {
+  document.getElementById('drawer').classList.toggle('open', open);
+  document.getElementById('drawer-overlay').classList.toggle('open', open);
+}
+
+// ============================================================
+// CHECK-INS LIST
+// ============================================================
+function renderCheckinsList() {
+  // Filtra: solo i check-in del vigilante loggato
+  const myId = state.vigilante?.id;
+  const my = state.data.checkins
+    .filter(c => c.vigilante_id === myId)
+    .sort((a, b) => new Date(b.ora_scansione) - new Date(a.ora_scansione));
+  const wrap = document.getElementById('checkins-list');
+  if (!my.length) {
+    wrap.innerHTML = `<div class="checkin-empty">Nessun check-in registrato.<br>Tocca il pulsante <strong>casa</strong> in basso per iniziare.</div>`;
+    return;
+  }
+  wrap.innerHTML = my.map(ci => {
+    const t = state.data.tagNfc.find(t => t.id === ci.tag_id);
+    const s = t ? state.data.strutture.find(s => s.id === t.struttura_id) : null;
+    const c = s ? state.data.clienti.find(c => c.id === s.cliente_id) : null;
+    const tipo = s ? state.data.tipiStrutture.find(tp => tp.id === s.tipo_struttura_id) : null;
+    const struttura = [tipo?.nome, s?.nome, s?.indirizzo].filter(Boolean).join(', ');
+    const pending = !ci.synced;
+    return `<div class="checkin-item">
+      <div class="checkin-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="checkin-info">
+        <div class="cliente">${escape(c ? clienteDisplay(c) : 'Sconosciuto')}${pending ? '<span class="pending-badge">offline</span>' : ''}</div>
+        <div class="struttura">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/></svg>
+          ${escape(struttura)}
+        </div>
+        <div class="time">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+          ${formatDateTime(ci.ora_scansione)}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// SCAN FLOW
+// ============================================================
+function resetScanUI() {
+  const scan = document.getElementById('scan');
+  scan.classList.remove('success', 'error');
+  document.getElementById('scan-title').textContent = 'Avvicina al tag';
+  document.getElementById('scan-msg').textContent = 'Tieni il telefono vicino al tag NFC della struttura per registrare il check-in.';
+}
+
+async function startScan() {
+  resetScanUI();
+  if (!('NDEFReader' in window)) {
+    document.getElementById('scan-title').textContent = 'NFC non disponibile';
+    document.getElementById('scan-msg').textContent = "Su questo dispositivo non puoi scansionare. Usa Chrome su Android, oppure tocca 'Simula scansione' per testare.";
+    return;
+  }
+  try {
+    state.scanAbortController = new AbortController();
+    const reader = new NDEFReader();
+    await reader.scan({signal: state.scanAbortController.signal});
+    reader.onreadingerror = () => {
+      document.getElementById('scan-msg').textContent = 'Errore di lettura. Riprova ad avvicinare il tag.';
+    };
+    reader.onreading = ({serialNumber}) => {
+      handleTag(normalizeCode(serialNumber));
+    };
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    document.getElementById('scan-title').textContent = 'NFC bloccato';
+    document.getElementById('scan-msg').textContent = (e.message || 'Permesso NFC negato.') + ' Tocca "Simula scansione" per testare.';
+  }
+}
+
+function normalizeCode(code) {
+  return String(code || '').replace(/[:\s-]/g, '').toUpperCase();
+}
+
+async function handleTag(code) {
+  // Stop further scans (one tag = one check-in)
+  if (state.scanAbortController) { try { state.scanAbortController.abort(); } catch (_) {} state.scanAbortController = null; }
+
+  const tag = state.data.tagNfc.find(t => normalizeCode(t.codice_nfc) === code);
+  const scan = document.getElementById('scan');
+
+  if (!tag) {
+    scan.classList.add('error');
+    document.getElementById('scan-title').textContent = 'Tag non riconosciuto';
+    document.getElementById('scan-msg').textContent = `Codice ${code} non trovato. Contatta l'ufficio per registrarlo.`;
+    showResultModal({error: true, code});
+    return;
+  }
+
+  // Get GPS (best-effort, non bloccare se non disponibile)
+  let lat = null, lng = null;
+  try {
+    const pos = await new Promise((resolve, reject) => {
+      if (!('geolocation' in navigator)) return reject('no-geo');
+      navigator.geolocation.getCurrentPosition(resolve, reject, {timeout: 4000, enableHighAccuracy: true});
+    });
+    lat = pos.coords.latitude; lng = pos.coords.longitude;
+  } catch (_) {}
+
+  // Crea check-in
+  const ci = {
+    id: uid(),
+    client_uuid: uid(),
+    tag_id: tag.id,
+    vigilante_id: state.vigilante.id,
+    ora_scansione: nowISO(),
+    latitudine: lat,
+    longitudine: lng,
+    manuale: false,
+    synced: state.online, // simulazione: se online "syncato", se offline pending
+  };
+  state.data.checkins.unshift(ci);
+  await saveSection('checkins');
+
+  // UI success
+  scan.classList.add('success');
+  document.getElementById('scan-title').textContent = 'Check-in registrato';
+  document.getElementById('scan-msg').textContent = '';
+  showResultModal({tag, ci});
+
+  // Vibrazione tattile (Android)
+  if ('vibrate' in navigator) try { navigator.vibrate(80); } catch (_) {}
+}
+
+// ============================================================
+// SIMULATOR (per testare senza tag fisico)
+// ============================================================
+function openSimulator() {
+  const tags = state.data.tagNfc;
+  const card = document.getElementById('modal-card');
+  card.className = 'modal-card';
+  card.innerHTML = `
+    <div class="title">Scegli tag da simulare</div>
+    <div class="msg">Solo per demo: imita la scansione fisica di un tag NFC.</div>
+    <div class="sim-list">
+      ${tags.map(t => {
+        const s = state.data.strutture.find(s => s.id === t.struttura_id);
+        const c = s ? state.data.clienti.find(c => c.id === s.cliente_id) : null;
+        return `<button class="sim-item" onclick="simulateTag('${t.codice_nfc}')">
+          <strong>${escape(t.descrizione || 'Tag')}</strong>
+          <span>${escape(c ? clienteDisplay(c) : '')} — ${escape(s?.nome || '')}</span>
+        </button>`;
+      }).join('')}
+    </div>
+    <div class="actions">
+      <button class="secondary" onclick="closeModal()">Chiudi</button>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function simulateTag(code) {
+  closeModal();
+  handleTag(normalizeCode(code));
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function showResultModal({tag, ci, error, code}) {
+  const card = document.getElementById('modal-card');
+  if (error) {
+    card.className = 'modal-card error';
+    card.innerHTML = `
+      <div class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      </div>
+      <div class="title">Tag sconosciuto</div>
+      <div class="msg">Il tag <code>${escape(code)}</code> non è registrato nel sistema.</div>
+      <div class="actions">
+        <button class="secondary" onclick="closeModalAndScanAgain()">Riprova</button>
+        <button class="primary" onclick="closeModal(); goTo('home')">Home</button>
+      </div>
+    `;
+  } else {
+    const s = state.data.strutture.find(s => s.id === tag.struttura_id);
+    const c = s ? state.data.clienti.find(c => c.id === s.cliente_id) : null;
+    card.className = 'modal-card';
+    card.innerHTML = `
+      <div class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="title">Check-in effettuato</div>
+      <div class="msg">${ci.synced ? 'Sincronizzato col server.' : 'Salvato in locale, sincronizzerà appena online.'}</div>
+      <div class="details">
+        <div class="row"><strong>Cliente</strong><span>${escape(c ? clienteDisplay(c) : '—')}</span></div>
+        <div class="row"><strong>Struttura</strong><span>${escape(s?.nome || '—')}</span></div>
+        <div class="row"><strong>Tag</strong><span>${escape(tag.descrizione || tag.codice_nfc)}</span></div>
+        <div class="row"><strong>Ora</strong><span>${formatDateTime(ci.ora_scansione)}</span></div>
+        ${ci.latitudine ? `<div class="row"><strong>GPS</strong><span>${ci.latitudine.toFixed(5)}, ${ci.longitudine.toFixed(5)}</span></div>` : ''}
+      </div>
+      <div class="actions">
+        <button class="secondary" onclick="closeModalAndScanAgain()">Altro check-in</button>
+        <button class="primary" onclick="closeModal(); goTo('checkins')">Vedi storico</button>
+      </div>
+    `;
+  }
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+function closeModalAndScanAgain() {
+  closeModal();
+  resetScanUI();
+  startScan();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// CONNECTION STATUS
+// ============================================================
+function updateConnection() {
+  state.online = navigator.onLine;
+  const pill = document.getElementById('conn-pill');
+  if (!pill) return;
+  pill.classList.toggle('offline', !state.online);
+  const span = pill.querySelector('span');
+  if (span) span.textContent = state.online ? 'online' : 'offline';
+}
+window.addEventListener('online', () => { updateConnection(); syncPending(); });
+window.addEventListener('offline', updateConnection);
+
+async function syncPending() {
+  // Simulazione sync: in produzione qui faremmo una POST al backend per ogni check-in non synced
+  let changed = false;
+  for (const ci of state.data.checkins) {
+    if (!ci.synced) { ci.synced = true; changed = true; }
+  }
+  if (changed) {
+    await saveSection('checkins');
+    if (document.getElementById('checkins').classList.contains('active')) renderCheckinsList();
+    showToast('Check-in sincronizzati');
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  await loadAll();
+  await maybeSeed();
+  updateConnection();
+  const restored = await tryRestoreSession();
+  if (!restored) goTo('login');
+}
+
+init();
+</script>
+</body>
+</html>
