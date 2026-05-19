@@ -1,0 +1,3428 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIS Group — Gestionale</title>
+<style>
+:root {
+  --primary: #1FA9D2;
+  --primary-dark: #1689B1;
+  --primary-light: #E8F6FB;
+  --bg: #ffffff;
+  --bg-2: #f5f7f9;
+  --bg-3: #ebeef1;
+  --border: #d8dde2;
+  --border-2: #c4cad1;
+  --text: #2c3e50;
+  --text-2: #5d6c7b;
+  --text-3: #8a96a3;
+  --danger: #d9534f;
+  --success: #5cb85c;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg-2);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Top bar */
+.topbar {
+  background: var(--primary);
+  color: white;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+}
+.topbar .brand {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.topbar .brand .logo {
+  width: 26px; height: 26px;
+  background: white;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+.topbar .user {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  opacity: 0.95;
+}
+
+.layout {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 200px;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  transition: background 0.1s, border-color 0.1s;
+  user-select: none;
+}
+.sidebar-item:hover { background: var(--bg-2); }
+.sidebar-item.active {
+  color: var(--primary);
+  background: var(--primary-light);
+  border-left-color: var(--primary);
+  font-weight: 500;
+}
+.sidebar-item svg {
+  width: 20px; height: 20px;
+  color: var(--primary);
+  flex-shrink: 0;
+  stroke-width: 1.5;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  overflow: auto;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-bar {
+  position: sticky;
+  top: 0;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  z-index: 5;
+  min-height: 48px;
+}
+.section-bar h1 {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+.section-bar .actions {
+  display: flex; gap: 4px; align-items: center;
+  min-width: 110px;
+}
+.section-bar .actions.right { justify-content: flex-end; }
+.section-bar .icon-btn {
+  width: 32px; height: 32px;
+  background: none; border: none;
+  border-radius: 4px;
+  color: var(--primary);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s;
+}
+.section-bar .icon-btn:hover { background: var(--primary-light); }
+.section-bar .icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.section-bar .icon-btn svg { width: 20px; height: 20px; stroke-width: 1.5; }
+
+/* Table */
+.table-wrap {
+  flex: 1;
+  overflow: auto;
+}
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.data thead {
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+table.data thead .col-header th {
+  text-align: left;
+  padding: 10px 12px 8px;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  background: var(--bg);
+}
+table.data thead .col-header th:hover { background: var(--bg-2); }
+table.data thead .col-header th.no-sort { cursor: default; }
+table.data thead .col-header th.no-sort:hover { background: var(--bg); }
+table.data thead .col-header th .sort-ind {
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--text-3);
+  font-size: 9px;
+  vertical-align: middle;
+}
+table.data thead .col-header th.sorted .sort-ind { color: #7e57c2; }
+
+table.data thead .filter-row th {
+  padding: 4px 6px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+table.data thead .filter-row input {
+  width: 100%;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-size: 12px;
+  background: var(--bg);
+  min-width: 60px;
+}
+table.data thead .filter-row input:focus {
+  outline: none; border-color: var(--primary);
+}
+table.data thead .filter-row th.no-filter input { visibility: hidden; }
+
+table.data tbody tr {
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.08s;
+}
+table.data tbody tr:nth-child(even) { background: var(--bg-2); }
+table.data tbody tr:hover { background: var(--primary-light) !important; }
+table.data tbody td {
+  padding: 9px 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+table.data tbody td.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-3);
+  cursor: default;
+  background: var(--bg);
+}
+table.data tbody tr.empty-row { cursor: default; }
+table.data tbody tr.empty-row:hover { background: var(--bg) !important; }
+
+td.row-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+td.row-actions button {
+  background: none; border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  margin: 0 1px;
+}
+td.row-actions button:hover { color: var(--primary); background: var(--primary-light); }
+td.row-actions button.delete:hover { color: var(--danger); background: rgba(217, 83, 79, 0.1); }
+td.row-actions svg { width: 16px; height: 16px; vertical-align: middle; stroke-width: 1.8; }
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+.pagination strong { color: var(--text); }
+.pagination .pages {
+  display: flex; gap: 4px; align-items: center;
+}
+.pagination .pages button {
+  padding: 5px 10px;
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  cursor: pointer;
+  border-radius: 3px;
+  min-width: 28px;
+}
+.pagination .pages button:hover:not(:disabled):not(.active) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.pagination .pages button.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  cursor: default;
+}
+.pagination .pages button:disabled {
+  opacity: 0.4; cursor: not-allowed;
+}
+.pagination .pages .ellipsis {
+  padding: 0 4px; color: var(--text-3);
+}
+
+/* Modal */
+[hidden] { display: none !important; }
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(20, 30, 40, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  animation: fadeIn 0.15s;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  max-width: 720px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+.modal.wide { max-width: 1100px; }
+.modal-header {
+  background: var(--primary);
+  color: white;
+  padding: 12px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-radius: 6px 6px 0 0;
+}
+.modal-header h2 { font-size: 15px; font-weight: 600; }
+.modal-header button {
+  background: none; border: none; color: white;
+  cursor: pointer; font-size: 22px; line-height: 1;
+  padding: 0 6px;
+}
+.modal-body {
+  padding: 18px;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--bg-2);
+  border-radius: 0 0 6px 6px;
+}
+.modal-footer .left, .modal-footer .right { display: flex; gap: 8px; }
+
+/* ===== CHILDREN SECTION (aziende/strutture inline) ===== */
+.children-section {
+  margin-top: 22px;
+  padding: 18px 16px 4px;
+  background: #f8f9fb;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.children-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+.children-header h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-2);
+  font-weight: 600;
+  margin: 0;
+}
+.children-sub-info {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.btn-small {
+  padding: 5px 10px !important;
+  font-size: 12px !important;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.children-empty {
+  padding: 20px 12px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 13px;
+  background: white;
+  border: 1px dashed var(--border-2);
+  border-radius: 5px;
+  margin-bottom: 8px;
+}
+.children-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.children-card-head {
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.children-card-head > div:first-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.children-card-head strong {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.children-card-head .children-meta {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.children-card-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.btn-link:hover { background: rgba(59, 130, 246, 0.08); }
+.children-sublist {
+  border-top: 1px solid var(--border);
+  background: #fafbfc;
+}
+.children-sub-row {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  transition: background 0.08s;
+}
+.children-sub-row:last-child { border-bottom: none; }
+.children-sub-row:hover { background: #f0f3f7; }
+.children-sub-row .sub-name {
+  color: var(--text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.children-sub-row .sub-meta {
+  color: var(--text-2);
+  font-size: 11px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+  text-align: right;
+}
+.children-sub-row .sub-meta.tag-code {
+  font-family: ui-monospace, monospace;
+  background: #eef2f7;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.children-sub-empty {
+  padding: 10px 14px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12px;
+  background: #fafbfc;
+  border-top: 1px solid var(--border);
+  font-style: italic;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn:hover { background: var(--bg-2); }
+.btn-primary {
+  background: var(--primary); border-color: var(--primary); color: white;
+}
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.btn-danger {
+  background: white; border-color: var(--danger); color: var(--danger);
+}
+.btn-danger:hover { background: var(--danger); color: white; }
+
+/* Form */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.form-grid .full { grid-column: 1 / -1; }
+
+/* ===== 2-COLUMN CARD LAYOUT (per Cliente "ricco") ===== */
+.form-row-2cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.form-row-full {
+  margin-bottom: 16px;
+}
+.form-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.form-card.empty { background: transparent; border: none; }
+.form-card-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  background: #f8f9fb;
+}
+.form-card-header h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.form-card-header .card-desc {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.form-card-body {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 14px;
+}
+.form-card-body .full { grid-column: 1 / -1; }
+.form-card-body .field label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-2);
+  font-weight: 500;
+}
+/* Per mobile (form modal stretto) torna a una sola colonna */
+@media (max-width: 720px) {
+  .form-row-2cols { grid-template-columns: 1fr; }
+  .form-card-body { grid-template-columns: 1fr; }
+}
+.field label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-2);
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: white;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--primary);
+}
+.field-checkbox {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0;
+}
+.field-checkbox input { width: auto; margin: 0; }
+.field-checkbox label {
+  margin: 0; text-transform: none; letter-spacing: 0;
+  font-size: 13px; color: var(--text); font-weight: 500;
+}
+
+/* responsive */
+@media (max-width: 760px) {
+  .sidebar { width: 56px; }
+  .sidebar-item { justify-content: center; padding: 14px 0; }
+  .sidebar-item span { display: none; }
+}
+
+/* Form sezioni */
+.form-grid .form-section {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.form-grid .form-section:first-child {
+  margin-top: 0; padding-top: 0; border-top: none;
+}
+.form-section h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.form-section .desc {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: normal;
+  line-height: 1.5;
+}
+.field label .required {
+  color: var(--danger);
+  margin-left: 2px;
+  font-weight: 700;
+}
+.field input::placeholder { color: var(--text-3); opacity: 0.7; }
+.field.field-hidden { display: none !important; }
+.form-section.section-hidden { display: none !important; }
+
+/* ===== AUTOCOMPLETE INDIRIZZO ===== */
+.addr-autocomplete-wrap {
+  position: relative;
+}
+.addr-results {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
+  background: white;
+  border: 1px solid var(--border-2);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  z-index: 10;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.addr-result {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.addr-result:last-child { border-bottom: none; }
+.addr-result:hover {
+  background: #f0f6ff;
+}
+.addr-result-main {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.addr-result-sub {
+  font-size: 11px;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.addr-empty {
+  padding: 12px;
+  font-size: 12px;
+  color: var(--text-2);
+  font-style: italic;
+  text-align: center;
+}
+
+/* Password input + bottone genera */
+.password-wrap { position: relative; flex: 1; }
+.password-wrap input {
+  padding-right: 36px !important;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.04em;
+}
+.password-wrap .eye-btn {
+  position: absolute;
+  right: 4px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  cursor: pointer;
+  color: var(--text-3);
+  padding: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.password-wrap .eye-btn:hover { color: var(--primary); }
+.password-wrap .eye-btn svg { width: 16px; height: 16px; stroke-width: 1.5; }
+.input-group {
+  display: flex; gap: 6px; align-items: stretch;
+}
+.gen-btn {
+  flex-shrink: 0;
+  padding: 0 12px;
+  background: white;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.gen-btn:hover { background: var(--primary-light); }
+
+/* Banner credenziali post-creazione */
+.creds-banner {
+  background: var(--primary-light);
+  border: 1px solid var(--primary);
+  border-radius: 5px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.creds-banner h4 {
+  font-size: 13px;
+  color: var(--primary);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.creds-banner p {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+.creds-box {
+  background: white;
+  padding: 10px 14px;
+  border-radius: 3px;
+  font-size: 13px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.creds-box .row { display: flex; align-items: center; gap: 10px; }
+.creds-box strong { display: inline-block; min-width: 80px; color: var(--text-2); font-weight: 500; }
+.creds-box code { font-family: ui-monospace, monospace; color: var(--text); font-size: 13px; flex: 1; }
+.copy-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-2);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.copy-btn:hover { color: var(--primary); border-color: var(--primary); }
+.copy-btn svg { width: 14px; height: 14px; stroke-width: 1.8; }
+.copy-btn.copied { color: var(--success); border-color: var(--success); }
+
+/* ========== REPORT CHECK-INS ========== */
+.report {
+  padding: 16px;
+  display: flex; flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  overflow: auto;
+}
+.report-filters {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 14px 16px;
+}
+.report-filters h3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+.report-filters .filter-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+.report-filters .filter-grid .field { margin-bottom: 0; }
+.report-filters .filter-grid .field label {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+.report-filters .filter-grid .field input,
+.report-filters .filter-grid .field select {
+  padding: 6px 8px;
+  font-size: 13px;
+}
+.report-filters .quick-buttons {
+  display: flex; gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.report-filters .quick-buttons button {
+  padding: 4px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.report-filters .quick-buttons button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.report-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+.summary-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 5px;
+  padding: 14px 16px;
+}
+.summary-card .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+.summary-card .value {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.summary-card .sub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.report-results {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  min-height: 200px;
+}
+.report-results .toolbar {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.report-results .toolbar h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.report-results .toolbar .actions { display: flex; gap: 6px; }
+.report-results .toolbar button {
+  padding: 5px 12px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-2);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.report-results .toolbar button:hover { color: var(--primary); border-color: var(--primary); }
+.report-results .toolbar button svg { width: 14px; height: 14px; stroke-width: 1.8; }
+.report-results .toolbar .view-toggle {
+  display: flex; border: 1px solid var(--border); border-radius: 3px; overflow: hidden;
+}
+.report-results .toolbar .view-toggle button {
+  border: none; border-radius: 0; padding: 5px 12px;
+}
+.report-results .toolbar .view-toggle button.active {
+  background: var(--primary); color: white;
+}
+
+.report-results .results-body {
+  flex: 1;
+  overflow: auto;
+}
+
+table.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.report-table thead th {
+  position: sticky; top: 0;
+  background: var(--bg);
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 600;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+table.report-table thead th.num { text-align: right; }
+table.report-table tbody tr { border-bottom: 1px solid var(--border); }
+table.report-table tbody tr:nth-child(even) { background: var(--bg-2); }
+table.report-table tbody tr.day-row { cursor: pointer; }
+table.report-table tbody tr.day-row:hover { background: var(--primary-light) !important; }
+table.report-table tbody td { padding: 9px 12px; vertical-align: top; }
+table.report-table tbody td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+table.report-table tbody td.day {
+  font-weight: 500;
+  color: var(--primary);
+}
+table.report-table tbody td.muted { color: var(--text-3); font-size: 12px; }
+table.report-table tbody tr.detail-row { background: white !important; }
+table.report-table tbody tr.detail-row td {
+  padding: 0 12px 8px 36px;
+}
+.detail-list {
+  margin-top: 4px;
+  border-left: 2px solid var(--primary-light);
+  padding-left: 12px;
+}
+.detail-list .detail-item {
+  display: grid;
+  grid-template-columns: 70px 1fr 1fr 130px;
+  gap: 12px;
+  padding: 5px 0;
+  font-size: 12px;
+  color: var(--text-2);
+  border-bottom: 1px dotted var(--border);
+}
+.detail-list .detail-item:last-child { border-bottom: none; }
+.detail-list .detail-item .time {
+  font-family: ui-monospace, monospace;
+  color: var(--text);
+  font-weight: 500;
+}
+.detail-list .detail-item .vig { color: var(--text); }
+
+.expand-ind {
+  display: inline-block;
+  width: 14px;
+  color: var(--text-3);
+  font-size: 10px;
+  margin-right: 4px;
+  transition: transform 0.15s;
+}
+tr.day-row.expanded .expand-ind { transform: rotate(90deg); color: var(--primary); }
+
+.empty-report {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .report-filters .filter-grid { grid-template-columns: 1fr 1fr; }
+  .detail-list .detail-item { grid-template-columns: 70px 1fr; }
+  .detail-list .detail-item .struct, .detail-list .detail-item .ip { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">VIS</div>
+      <span>V.I.S Group srl</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:18px">
+      <div id="sync-status" style="font-size:11px;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.04em">
+        <span style="display:inline-block;width:8px;height:8px;background:#999;border-radius:50%;margin-right:6px"></span>Connessione…
+      </div>
+      <div class="user">Admin (AMMINISTRATORE)</div>
+    </div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-overlay" hidden>
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- =================================================================== -->
+<!-- BLOCCO FIREBASE — incollare PRIMA del proprio <script> -->
+<!-- =================================================================== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, query
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCoIxkw8RZXSMyVikNll5Lo4vh_-HHVJaU",
+  authDomain: "owl-check.firebaseapp.com",
+  projectId: "owl-check",
+  storageBucket: "owl-check.firebasestorage.app",
+  messagingSenderId: "535562851991",
+  appId: "1:535562851991:web:e1c6a7f60ebcf44c0bbbd2",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Esponi le primitive Firestore al codice non-modulo dell'app
+window.FB = {
+  db, collection, doc, setDoc, deleteDoc, onSnapshot, query,
+  ready: true,
+};
+window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<script>
+// ============================================================
+// CLOUD SYNC — Firestore in tempo reale
+// ============================================================
+// Le sezioni vengono salvate su Firestore come collezioni,
+// con un documento per ogni entità. L'app ascolta i cambi
+// remoti e aggiorna lo stato locale automaticamente.
+// ============================================================
+
+const CloudSync = (() => {
+  // Quali collezioni sono sincronizzate (NON i checkins, non gli accessi: troppo voluminosi qui)
+  const SYNCED = ['clienti', 'aziende', 'strutture', 'tipiStrutture', 'tagNfc', 'vigilantes', 'zone', 'utenti', 'checkins'];
+  let listeners = [];
+  let onRemoteUpdateCb = null;
+  let initialized = false;
+
+  function isReady() { return !!(window.FB && window.FB.ready); }
+
+  // Aspetta che il modulo Firebase sia caricato
+  function waitReady() {
+    return new Promise(resolve => {
+      if (isReady()) return resolve();
+      window.addEventListener('firebase-ready', () => resolve(), {once: true});
+    });
+  }
+
+  // Avvia listener real-time su tutte le collezioni
+  async function start(stateData, onRemoteUpdate) {
+    await waitReady();
+    onRemoteUpdateCb = onRemoteUpdate;
+    initialized = true;
+    const {db, collection, onSnapshot} = window.FB;
+
+    for (const sectionKey of SYNCED) {
+      const colRef = collection(db, sectionKey);
+      const unsub = onSnapshot(colRef, snapshot => {
+        // Ricostruisci la lista locale dai documenti remoti
+        const docs = [];
+        snapshot.forEach(d => {
+          const data = d.data();
+          docs.push({...data, id: d.id});
+        });
+        stateData[sectionKey] = docs;
+        if (onRemoteUpdateCb) onRemoteUpdateCb(sectionKey);
+      }, err => {
+        console.warn('[CloudSync] errore listener', sectionKey, err.message);
+      });
+      listeners.push(unsub);
+    }
+  }
+
+  function stop() {
+    listeners.forEach(u => { try { u(); } catch (_) {} });
+    listeners = [];
+    initialized = false;
+  }
+
+  // Salva (upsert) un singolo record su Firestore
+  async function upsert(sectionKey, record) {
+    if (!isReady()) return false;
+    if (!SYNCED.includes(sectionKey)) return false;
+    if (!record || !record.id) return false;
+    try {
+      const {db, doc, setDoc} = window.FB;
+      // Rimuovo il campo 'id' dal documento (è già la chiave)
+      const {id, ...rest} = record;
+      await setDoc(doc(db, sectionKey, id), rest, {merge: true});
+      return true;
+    } catch (e) {
+      console.warn('[CloudSync] upsert failed', sectionKey, e.message);
+      return false;
+    }
+  }
+
+  // Salva una lista intera (utile per il seed iniziale)
+  async function upsertMany(sectionKey, records) {
+    if (!isReady() || !records?.length) return;
+    for (const r of records) await upsert(sectionKey, r);
+  }
+
+  async function remove(sectionKey, id) {
+    if (!isReady() || !SYNCED.includes(sectionKey) || !id) return;
+    try {
+      const {db, doc, deleteDoc} = window.FB;
+      await deleteDoc(doc(db, sectionKey, id));
+    } catch (e) {
+      console.warn('[CloudSync] delete failed', sectionKey, id, e.message);
+    }
+  }
+
+  return { start, stop, upsert, upsertMany, remove, isReady, waitReady, SYNCED };
+})();
+
+// ============================================================
+// ICONS
+// ============================================================
+const I = {
+  add: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="14" height="18" rx="1"/><line x1="11" y1="9" x2="11" y2="17"/><line x1="7" y1="13" x2="15" y2="13"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>',
+  print: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
+  exp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  // section icons
+  s_clienti: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  s_aziende: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v8h4"/><path d="M18 9h2a2 2 0 0 1 2 2v11h-4"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>',
+  s_zone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  s_vigilantes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21v-1a7 7 0 0 1 14 0v1"/><path d="M9 13l-1 4M15 13l1 4"/></svg>',
+  s_strutture: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>',
+  s_tipiStrutture: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',
+  s_tagNfc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
+  s_report: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="10" y1="9" x2="12" y2="9"/></svg>',
+  s_checkins: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+  s_accessi: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>',
+  s_utenti: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  s_gruppi: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M21 21v-2a4 4 0 0 0-3-3.87"/></svg>',
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+const uid = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try { return crypto.randomUUID(); } catch (_) {}
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+};
+const nowISO = () => new Date().toISOString();
+const escape = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const formatDateTime = iso => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}-${pad(d.getMonth()+1)}-${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+const clienteDisplay = c => {
+  if (!c) return '';
+  return `${c.cognome || ''} ${c.nome || ''}`.trim() || 'Senza nome';
+};
+
+const aziendaDisplay = a => {
+  if (!a) return '';
+  return a.ragione_sociale || 'Senza nome';
+};
+
+// ============================================================
+// SECTIONS CONFIG
+// ============================================================
+const SECTIONS = {
+  clienti: {
+    title: 'Clienti', singular: 'Cliente',
+    icon: I.s_clienti,
+    columns: [
+      {key: 'cognome', label: 'Cognome'},
+      {key: 'nome', label: 'Nome'},
+      {key: 'codice_fiscale', label: 'Codice Fiscale'},
+      {key: '_aziende_count', label: 'Aziende', fmt: 'clienteAziendeCount', width: 80},
+      {key: 'telefono', label: 'Telefono'},
+      {key: 'email', label: 'Email'},
+      {key: 'attivo', label: 'Attivo', fmt: 'siNo', width: 70},
+      {key: 'creato_il', label: 'Data Inserimento', fmt: 'datetime'},
+    ],
+    formFields: [
+      // ===== RIGA 1: ID (sx) + DATI ANAGRAFICI (dx) =====
+      {section: 'ID', group: 'left', desc: 'Documento d\'identità e codici fiscali.'},
+      {key: 'ragione_sociale', label: 'Ragione Sociale', placeholder: 'Solo se persona giuridica', full: true, group: 'left'},
+      {key: 'codice_fiscale', label: 'Codice Fiscale', placeholder: 'es. RSSMRA70A01H501Z', full: true, group: 'left'},
+      {key: 'partita_iva', label: 'Partita IVA', full: true, group: 'left'},
+      {key: 'tipo_documento', label: 'Tipo documento', type: 'select-options', options: ['Carta d\'identità','Patente','Passaporto'], group: 'left'},
+      {key: 'numero_documento', label: 'Numero documento', group: 'left'},
+
+      {section: 'Dati anagrafici', group: 'right', desc: 'Compila Cognome e Nome (per persone fisiche) oppure solo Ragione Sociale (sopra) per aziende.'},
+      {key: 'cognome', label: 'Cognome', placeholder: 'es. Rossi', group: 'right'},
+      {key: 'nome', label: 'Nome', placeholder: 'es. Mario', group: 'right'},
+      {key: 'data_nascita', label: 'Data nascita', type: 'date', group: 'right'},
+      {key: 'luogo_nascita', label: 'Luogo Nascita', placeholder: 'es. Montebelluna (TV)', group: 'right'},
+      {key: 'sesso', label: 'Sesso', type: 'select-options', options: ['M','F','Altro'], group: 'right'},
+
+      // ===== RIGA 2: CONTATTO (sx) + STATO (dx) =====
+      {section: 'Contatto', group: 'left'},
+      {key: 'indirizzo', label: 'Indirizzo', type: 'address-autocomplete', placeholder: 'Digita via, città... (es. Via Roma Montebelluna)', group: 'left', cols: 2,
+        autocompleteFills: {paese: 'paese', provincia: 'provincia', cap: 'cap', latitudine: 'latitudine', longitudine: 'longitudine'}},
+      {key: 'civico', label: 'Civico', placeholder: '12', group: 'left'},
+      {key: 'paese', label: 'Paese', placeholder: 'es. Montebelluna', group: 'left'},
+      {key: 'cap', label: 'CAP', maxlength: 5, placeholder: '31044', group: 'left'},
+      {key: 'provincia', label: 'Provincia', maxlength: 2, placeholder: 'TV', group: 'left'},
+      {key: 'latitudine', label: 'Latitudine', type: 'hidden', group: 'left'},
+      {key: 'longitudine', label: 'Longitudine', type: 'hidden', group: 'left'},
+      {key: 'telefono', label: 'Telefono 1', placeholder: 'es. 333 1234567', full: true, group: 'left'},
+      {key: 'telefono2', label: 'Telefono 2', full: true, group: 'left'},
+      {key: 'email', label: 'Email', type: 'email', placeholder: 'es. mario.rossi@email.it', full: true, group: 'left'},
+
+      {section: 'Stato', group: 'right'},
+      {key: 'attivo', label: 'Attivo', type: 'select-sino', default: true, full: true, group: 'right'},
+      {key: 'privacy_accettata', label: 'Privacy accettata', type: 'select-sino', default: true, full: true, group: 'right'},
+      {key: 'push_abilitate', label: 'Push abilitate', type: 'select-sino', default: false, full: true, group: 'right'},
+      {key: 'note', label: 'Note', full: true, type: 'textarea', group: 'right'},
+
+      // ===== RIGA 3: AGGIUNGI AZIENDA (full) - solo in creazione =====
+      {section: 'Aggiungi anche un\'azienda', desc: 'Spunta se vuoi creare subito anche un\'azienda intestata a questo cliente. Potrai aggiungerne altre dopo dalla sezione Aziende.', createOnly: true, group: 'full'},
+      {key: '_anche_azienda', label: 'Crea anche un\'azienda ora', type: 'checkbox', full: true, conditional: true, createOnly: true, group: 'full'},
+      {key: '_az_ragione_sociale', label: 'Ragione Sociale', placeholder: 'es. Rossi Costruzioni SRL', requireWhen: '_anche_azienda', full: true, createOnly: true, group: 'full'},
+      {key: '_az_partita_iva', label: 'Partita IVA', placeholder: '01234567890', requireWhen: '_anche_azienda', createOnly: true, group: 'full'},
+      {key: '_az_codice_fiscale', label: 'Codice Fiscale azienda', createOnly: true, group: 'full'},
+      {key: '_az_indirizzo', label: 'Indirizzo sede', placeholder: 'es. Via Roma, 12', full: true, requireWhen: '_anche_azienda', createOnly: true, group: 'full'},
+      {key: '_az_paese', label: 'Città', placeholder: 'es. Montebelluna', createOnly: true, group: 'full'},
+      {key: '_az_provincia', label: 'Provincia', maxlength: 2, placeholder: 'TV', createOnly: true, group: 'full'},
+      {key: '_az_cap', label: 'CAP', maxlength: 5, createOnly: true, group: 'full'},
+      {key: '_az_telefono', label: 'Telefono azienda', createOnly: true, group: 'full'},
+      {key: '_az_email', label: 'Email azienda', type: 'email', createOnly: true, group: 'full'},
+
+      // ===== RIGA 4: PORTALE CLIENTI (full) =====
+      {section: 'Accesso al portale clienti', desc: 'Se attivato, il cliente potrà scaricare l\'app Owl-Check e accedere con queste credenziali per vedere in tempo reale i passaggi delle guardie sulle sue strutture.', group: 'full'},
+      {key: '_portale_attivo', label: 'Abilita portale clienti', type: 'checkbox', full: true, conditional: true, group: 'full'},
+      {key: '_portale_username', label: 'Username', placeholder: 'es. mario.rossi', requireWhen: '_portale_attivo', group: 'full'},
+      {key: '_portale_password', label: 'Password', type: 'password', withGenerate: true, requireWhen: '_portale_attivo', placeholder: 'Min 8 caratteri', group: 'full'},
+    ],
+    rw: true, sortInitial: 'cognome',
+    formLayout: 'two-cols',  // marker per usare il layout 2 colonne
+  },
+  aziende: {
+    title: 'Aziende', singular: 'Azienda',
+    icon: I.s_aziende,
+    columns: [
+      {key: 'ragione_sociale', label: 'Ragione Sociale'},
+      {key: '_cliente', label: 'Cliente proprietario', fmt: 'aziendaCliente'},
+      {key: 'partita_iva', label: 'P.IVA / CF'},
+      {key: 'indirizzo', label: 'Indirizzo sede'},
+      {key: 'paese', label: 'Città'},
+      {key: 'provincia', label: 'Prov.', width: 70},
+      {key: '_strutture_count', label: 'Strutture', fmt: 'aziendaStruttureCount', width: 90},
+      {key: 'attivo', label: 'Attivo', fmt: 'siNo', width: 70},
+    ],
+    formFields: [
+      {section: 'Anagrafica azienda', desc: 'Un cliente può possedere più aziende (es. una persona può avere una SRL e una pizzeria a nome suo).'},
+      {key: 'cliente_id', label: 'Cliente proprietario', type: 'select-cliente', full: true, required: true},
+      {key: 'ragione_sociale', label: 'Ragione Sociale', required: true, full: true, placeholder: 'es. Rossi Costruzioni SRL'},
+      {key: 'partita_iva', label: 'Partita IVA'},
+      {key: 'codice_fiscale', label: 'Codice Fiscale azienda'},
+      {key: 'indirizzo', label: 'Indirizzo sede legale', type: 'address-autocomplete', full: true, placeholder: 'Digita via, città...',
+        autocompleteFills: {paese: 'paese', provincia: 'provincia', cap: 'cap'}},
+      {key: 'paese', label: 'Città', placeholder: 'es. Montebelluna'},
+      {key: 'provincia', label: 'Provincia', maxlength: 2, placeholder: 'es. TV'},
+      {key: 'cap', label: 'CAP', maxlength: 5},
+      {key: 'telefono', label: 'Telefono azienda'},
+      {key: 'email', label: 'Email azienda', type: 'email'},
+      {key: 'note', label: 'Note', full: true},
+      {key: 'attivo', label: 'Attivo', type: 'checkbox', default: true, full: true},
+    ],
+    rw: true, sortInitial: 'ragione_sociale',
+  },
+  vigilantes: {
+    title: 'Vigilantes', singular: 'Vigilante',
+    icon: I.s_vigilantes,
+    columns: [
+      {key: 'cognome', label: 'Cognome'},
+      {key: 'nome', label: 'Nome'},
+      {key: '_zone', label: 'Zone assegnate', fmt: 'vigilanteZone'},
+      {key: 'attivo', label: 'Attivo', fmt: 'siNo', width: 70},
+      {key: 'creato_il', label: 'Data Inserimento', fmt: 'datetime'},
+    ],
+    formFields: [
+      {section: 'Anagrafica vigilante'},
+      {key: 'cognome', label: 'Cognome', required: true},
+      {key: 'nome', label: 'Nome', required: true},
+      {key: 'codice_fiscale', label: 'Codice Fiscale', placeholder: 'es. RSSMRA85M01H501Z'},
+      {key: 'matricola', label: 'Matricola', placeholder: 'es. V0042'},
+      {key: 'telefono', label: 'Telefono', placeholder: 'es. 333 1234567'},
+      {key: 'attivo', label: 'Attivo', type: 'checkbox', default: true, full: true},
+      {section: 'Zone di competenza', desc: 'Il vigilante vedrà sull\'app solo le strutture delle zone assegnate. Lascia vuoto per accesso a tutte (es. caposquadra).'},
+      {key: 'zone_ids', label: 'Zone assegnate', type: 'multi-zone', full: true},
+      {section: 'Credenziali per app mobile', desc: 'Da consegnare al vigilante. Userà queste per accedere all\'app Owl-Check.'},
+      {key: '_username', label: 'Username', required: true, placeholder: 'es. mario.rossi'},
+      {key: '_password', label: 'Password', type: 'password', required: true, withGenerate: true, placeholder: 'Min 8 caratteri'},
+    ],
+    rw: true, sortInitial: 'cognome',
+  },
+  zone: {
+    title: 'Zone', singular: 'Zona',
+    icon: I.s_zone,
+    columns: [
+      {key: 'nome', label: 'Nome zona'},
+      {key: 'descrizione', label: 'Descrizione'},
+      {key: '_strutture_count', label: 'Strutture', fmt: 'zonaStruttureCount', width: 90},
+      {key: '_vigilantes_count', label: 'Vigilantes', fmt: 'zonaVigilantesCount', width: 90},
+    ],
+    formFields: [
+      {section: 'Anagrafica zona', desc: 'Una zona raggruppa più strutture geograficamente. I vigilantes vengono assegnati a una o più zone e durante la ronda vedono solo quelle.'},
+      {key: 'nome', label: 'Nome zona', required: true, placeholder: 'es. Zona Nord Montebelluna'},
+      {key: 'descrizione', label: 'Descrizione', full: true, placeholder: 'es. Quartiere industriale, zone est-ovest fino al fiume'},
+    ],
+    rw: true, sortInitial: 'nome',
+  },
+  strutture: {
+    title: 'Strutture', singular: 'Struttura',
+    icon: I.s_strutture,
+    columns: [
+      {key: '_tipo', label: 'Tipo', fmt: 'lookupTipo'},
+      {key: '_azienda', label: 'Azienda', fmt: 'strutturaAzienda'},
+      {key: '_cliente', label: 'Cliente', fmt: 'strutturaCliente'},
+      {key: 'nome', label: 'Nome'},
+      {key: '_zona', label: 'Zona', fmt: 'strutturaZona'},
+      {key: 'latitudine', label: 'Latitudine'},
+      {key: 'longitudine', label: 'Longitudine'},
+      {key: 'attivo', label: 'Attivo', fmt: 'siNo', width: 70},
+    ],
+    formFields: [
+      {section: 'Anagrafica struttura'},
+      {key: 'azienda_id', label: 'Azienda', type: 'select-azienda', full: true, required: true},
+      {key: 'tipo_struttura_id', label: 'Tipo', type: 'select-tipo'},
+      {key: 'zona_id', label: 'Zona di competenza', type: 'select-zona'},
+      {key: 'nome', label: 'Nome', required: true, placeholder: 'es. Sede principale, Magazzino...'},
+      {key: 'indirizzo', label: 'Indirizzo', type: 'address-autocomplete', full: true, placeholder: 'Digita via, città...',
+        autocompleteFills: {paese: 'paese', provincia: 'provincia', cap: 'cap', latitudine: 'latitudine', longitudine: 'longitudine'}},
+      {key: 'paese', label: 'Città'},
+      {key: 'provincia', label: 'Provincia', maxlength: 2},
+      {section: 'Posizione GPS', desc: 'Le coordinate vengono compilate automaticamente dall\'indirizzo, ma le puoi modificare. Servono per confrontare con la posizione del vigilante al check-in.'},
+      {key: 'latitudine', label: 'Latitudine', placeholder: 'es. 45.7595'},
+      {key: 'longitudine', label: 'Longitudine', placeholder: 'es. 12.0454'},
+      {key: 'telefono', label: 'Telefono'},
+      {key: 'attivo', label: 'Attivo', type: 'checkbox', default: true, full: true},
+    ],
+    rw: true, sortInitial: 'nome',
+  },
+  tipiStrutture: {
+    title: 'Tipi Strutture', singular: 'Tipo Struttura',
+    icon: I.s_tipiStrutture,
+    columns: [
+      {key: 'nome', label: 'Tipo'},
+    ],
+    formFields: [
+      {key: 'nome', label: 'Tipo', full: true},
+    ],
+    rw: true, sortInitial: 'nome',
+  },
+  tagNfc: {
+    title: 'Tag NFC', singular: 'Tag NFC',
+    icon: I.s_tagNfc,
+    columns: [
+      {key: '_cliente', label: 'Cliente', fmt: 'tagCliente'},
+      {key: '_struttura', label: 'Struttura', fmt: 'tagStruttura'},
+      {key: 'descrizione', label: 'Nome'},
+      {key: '_stato', label: 'Stato', fmt: 'tagStato', width: 130},
+      {key: 'codice_nfc', label: 'Codice NFC', width: 160},
+      {key: 'creato_il', label: 'Data inserimento', fmt: 'datetime'},
+    ],
+    formFields: [
+      {section: 'Anagrafica tag', desc: 'Crea il tag dal gestionale assegnandogli un nome e la struttura del cliente. Il codice NFC (UID) verrà compilato automaticamente quando un vigilante (o admin) avvicinerà fisicamente il tag al telefono con l\'app Owl-Check.'},
+      {key: 'struttura_id', label: 'Struttura', type: 'select-struttura', full: true, required: true},
+      {key: 'descrizione', label: 'Nome / Descrizione', full: true, required: true, placeholder: 'es. Ingresso principale, Cancello retro, Magazzino'},
+      {key: 'codice_nfc', label: 'Codice NFC (UID)', full: true, placeholder: 'Verrà letto dal telefono — lascia vuoto'},
+    ],
+    rw: true, sortInitial: 'creato_il', sortDir: 'desc',
+  },
+  checkins: {
+    title: 'Check-ins', singular: 'Check-in',
+    icon: I.s_checkins,
+    columns: [
+      {key: '_cliente', label: 'Cliente', fmt: 'checkinCliente'},
+      {key: '_vigilante', label: 'Vigilantes', fmt: 'checkinVigilante'},
+      {key: '_struttura', label: 'Struttura', fmt: 'checkinStruttura'},
+      {key: '_tag', label: 'Tag NFC', fmt: 'checkinTag'},
+      {key: 'ora_scansione', label: 'Ora scansione', fmt: 'datetime'},
+      {key: 'note', label: 'Note'},
+      {key: '_gps', label: 'GPS', fmt: 'checkinGps', width: 80},
+      {key: 'manuale', label: 'Manuale', fmt: 'siNo', width: 80},
+      {key: 'ip_address', label: 'IP'},
+      {key: 'ora_ricezione', label: 'Data ricezione', fmt: 'datetime'},
+    ],
+    formFields: [
+      {section: 'Check-in'},
+      {key: 'vigilante_id', label: 'Vigilante', type: 'select-vigilante', required: true},
+      {key: 'tag_id', label: 'Tag NFC', type: 'select-tag', required: true},
+      {key: 'ora_scansione', label: 'Data/Ora scansione', type: 'datetime-local', full: true},
+      {section: 'Posizione GPS'},
+      {key: 'latitudine', label: 'Latitudine', placeholder: 'es. 45.7595'},
+      {key: 'longitudine', label: 'Longitudine', placeholder: 'es. 12.0454'},
+      {key: 'note', label: 'Note operative', full: true, placeholder: 'Annotazioni del vigilante'},
+    ],
+    rw: true, manualOnly: true,  // si crea solo a mano dal web (i veri arrivano via app)
+    sortInitial: 'ora_ricezione', sortDir: 'desc',
+  },
+  reportCheckins: {
+    title: 'Report Check-ins', singular: 'Report',
+    icon: I.s_report,
+    custom: true, // gestita con render dedicato
+  },
+  accessi: {
+    title: 'Accessi', singular: 'Accesso',
+    icon: I.s_accessi,
+    columns: [
+      {key: '_utente', label: 'Utente', fmt: 'accessoUtente'},
+      {key: 'quando', label: 'Quando', fmt: 'datetime'},
+      {key: 'ip_address', label: 'IP'},
+      {key: 'successo', label: 'Successo', fmt: 'siNo', width: 90},
+    ],
+    rw: false, sortInitial: 'quando', sortDir: 'desc',
+  },
+  utenti: {
+    title: 'Utenti', singular: 'Utente',
+    icon: I.s_utenti,
+    columns: [
+      {key: 'nome', label: 'Nome'},
+      {key: 'cognome', label: 'Cognome'},
+      {key: 'username', label: 'Username'},
+      {key: '_gruppi', label: 'Gruppi', fmt: 'utenteGruppi'},
+      {key: '_cliente', label: 'Cliente', fmt: 'utenteCliente'},
+      {key: '_vigilante', label: 'Vigilantes', fmt: 'utenteVigilante'},
+      {key: 'attivo', label: 'Attivo', fmt: 'siNo', width: 70},
+    ],
+    formFields: [
+      {section: 'Identità'},
+      {key: 'nome', label: 'Nome'},
+      {key: 'cognome', label: 'Cognome'},
+      {key: 'email', label: 'Email', type: 'email', placeholder: 'es. nome@dominio.it'},
+      {section: 'Credenziali di accesso'},
+      {key: 'username', label: 'Username', required: true, placeholder: 'es. mario.rossi'},
+      {key: 'password', label: 'Password', type: 'password', withGenerate: true, placeholder: 'Min 4 caratteri'},
+      {section: 'Collegamenti', desc: 'Lega l\'utente a un cliente (per il portale) o a un vigilante (per l\'app). Lascia vuoto entrambi se è un admin/operatore d\'ufficio.'},
+      {key: 'cliente_id', label: 'Cliente', type: 'select-cliente-opt', full: true},
+      {key: 'vigilante_id', label: 'Vigilante', type: 'select-vigilante-opt', full: true},
+      {key: 'gruppi_ids', label: 'Gruppi', type: 'multi-gruppi', full: true},
+      {key: 'attivo', label: 'Attivo', type: 'checkbox', default: true, full: true},
+    ],
+    rw: true, sortInitial: 'cognome',
+  },
+  gruppiUtenti: {
+    title: 'Gruppi Utenti', singular: 'Gruppo',
+    icon: I.s_gruppi,
+    columns: [
+      {key: 'nome', label: 'Nome'},
+      {key: 'descrizione', label: 'Descrizione'},
+    ],
+    formFields: [
+      {key: 'nome', label: 'Nome'},
+      {key: 'descrizione', label: 'Descrizione', full: true},
+    ],
+    rw: true, sortInitial: 'nome',
+  },
+};
+
+const SECTION_ORDER = ['clienti', 'aziende', 'vigilantes', 'zone', 'strutture', 'tipiStrutture', 'tagNfc', 'checkins', 'reportCheckins', 'accessi', 'utenti', 'gruppiUtenti'];
+
+// ============================================================
+// FORMATTERS (lookup/joined values)
+// ============================================================
+const FMT = {
+  siNo: v => v ? 'SI' : 'NO',
+  datetime: v => formatDateTime(v),
+  lookupTipo: row => state.data.tipiStrutture.find(t => t.id === row.tipo_struttura_id)?.nome || '',
+
+  // ===== Strutture =====
+  strutturaAzienda: row => {
+    const a = (state.data.aziende || []).find(a => a.id === row.azienda_id);
+    return aziendaDisplay(a);
+  },
+  strutturaCliente: row => {
+    const a = (state.data.aziende || []).find(a => a.id === row.azienda_id);
+    if (!a) return '';
+    return clienteDisplay(state.data.clienti.find(c => c.id === a.cliente_id));
+  },
+  strutturaZona: row => (state.data.zone || []).find(z => z.id === row.zona_id)?.nome || '',
+
+  // ===== Tag =====
+  tagStruttura: row => {
+    const s = state.data.strutture.find(s => s.id === row.struttura_id);
+    if (!s) return '';
+    const tipo = state.data.tipiStrutture.find(t => t.id === s.tipo_struttura_id);
+    const a = (state.data.aziende || []).find(a => a.id === s.azienda_id);
+    return [tipo?.nome, aziendaDisplay(a), s.nome].filter(Boolean).join(', ');
+  },
+  tagCliente: row => {
+    const s = state.data.strutture.find(s => s.id === row.struttura_id);
+    if (!s) return '';
+    const a = (state.data.aziende || []).find(a => a.id === s.azienda_id);
+    if (!a) return '';
+    return clienteDisplay(state.data.clienti.find(c => c.id === a.cliente_id));
+  },
+  tagStato: row => {
+    if (row.codice_nfc && row.codice_nfc.trim()) {
+      return '<span style="background:#dcfce7;color:#15803d;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600">✓ Letto</span>';
+    }
+    return '<span style="background:#fef3c7;color:#a16207;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600">⏳ Da leggere</span>';
+  },
+
+  // ===== Check-in =====
+  checkinTag: row => state.data.tagNfc.find(t => t.id === row.tag_id)?.descrizione || '',
+  checkinStruttura: row => {
+    const t = state.data.tagNfc.find(t => t.id === row.tag_id);
+    if (!t) return '';
+    return FMT.tagStruttura(t);
+  },
+  checkinCliente: row => {
+    const t = state.data.tagNfc.find(t => t.id === row.tag_id);
+    if (!t) return '';
+    return FMT.tagCliente(t);
+  },
+  checkinVigilante: row => {
+    const v = state.data.vigilantes.find(v => v.id === row.vigilante_id);
+    return v ? `${v.cognome || ''} ${v.nome || ''}`.trim() : '';
+  },
+  checkinGps: row => {
+    if (row.latitudine == null || row.longitudine == null) return '';
+    return '📍 ' + Number(row.latitudine).toFixed(4) + ', ' + Number(row.longitudine).toFixed(4);
+  },
+
+  // ===== Aziende =====
+  aziendaCliente: row => clienteDisplay(state.data.clienti.find(c => c.id === row.cliente_id)),
+  aziendaStruttureCount: row => state.data.strutture.filter(s => s.azienda_id === row.id).length,
+
+  // ===== Clienti =====
+  clienteAziendeCount: row => (state.data.aziende || []).filter(a => a.cliente_id === row.id).length,
+
+  // ===== Zone =====
+  zonaStruttureCount: row => state.data.strutture.filter(s => s.zona_id === row.id).length,
+  zonaVigilantesCount: row => state.data.vigilantes.filter(v => (v.zone_ids || []).includes(row.id)).length,
+
+  // ===== Vigilantes =====
+  vigilanteZone: row => {
+    if (!row.zone_ids || !row.zone_ids.length) return 'Tutte';
+    return row.zone_ids.map(id => (state.data.zone || []).find(z => z.id === id)?.nome).filter(Boolean).join(', ');
+  },
+
+  // ===== Utenti =====
+  utenteGruppi: row => (row.gruppi_ids || []).map(id => state.data.gruppiUtenti.find(g => g.id === id)?.nome).filter(Boolean).join(', '),
+  utenteCliente: row => row.cliente_id ? clienteDisplay(state.data.clienti.find(c => c.id === row.cliente_id)) : '',
+  utenteVigilante: row => {
+    if (!row.vigilante_id) return '';
+    const v = state.data.vigilantes.find(v => v.id === row.vigilante_id);
+    return v ? `${v.cognome || ''} ${v.nome || ''}`.trim() : '';
+  },
+  accessoUtente: row => state.data.utenti.find(u => u.id === row.utente_id)?.username || '',
+};
+
+function formatCell(row, col) {
+  if (col.fmt && FMT[col.fmt]) return FMT[col.fmt](row);
+  return row[col.key] ?? '';
+}
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  currentSection: 'clienti',
+  filters: {},
+  sort: {col: null, dir: 'asc'},
+  page: 1,
+  perPage: 20,
+  data: {
+    clienti: [], aziende: [], vigilantes: [], zone: [], strutture: [], tipiStrutture: [],
+    tagNfc: [], checkins: [], accessi: [], utenti: [], gruppiUtenti: [],
+  },
+  // Stato del report
+  report: {
+    cliente_id: '',
+    vigilante_id: '',
+    struttura_id: '',
+    da: '',
+    a: '',
+    view: 'day', // 'day' o 'flat'
+    expanded: new Set(),
+  },
+};
+
+// ============================================================
+// STORAGE
+// ============================================================
+// ============================================================
+// STORAGE (window.storage con fallback in-memory)
+// ============================================================
+const Storage = (() => {
+  const mem = {};
+  const hasNative = typeof window !== 'undefined'
+    && window.storage
+    && typeof window.storage.get === 'function'
+    && typeof window.storage.set === 'function';
+  return {
+    available: hasNative,
+    async get(key) {
+      if (hasNative) {
+        try { return await window.storage.get(key); } catch (_) { return null; }
+      }
+      return mem[key] != null ? {key, value: mem[key]} : null;
+    },
+    async set(key, value) {
+      if (hasNative) {
+        try { return await window.storage.set(key, value); } catch (_) { /* ignore */ }
+      }
+      mem[key] = value;
+    },
+  };
+})();
+
+async function loadAll() {
+  for (const key of SECTION_ORDER) {
+    try {
+      const r = await Storage.get('vis:' + key);
+      if (r && r.value) state.data[key] = JSON.parse(r.value);
+    } catch (_) { /* missing key = empty */ }
+  }
+}
+async function saveSection(key) {
+  try {
+    await Storage.set('vis:' + key, JSON.stringify(state.data[key]));
+  } catch (_) { /* swallow, in-memory fallback già attivo */ }
+  // Sync su cloud (best-effort, non blocca se offline)
+  if (CloudSync.isReady() && CloudSync.SYNCED.includes(key)) {
+    for (const record of state.data[key]) {
+      CloudSync.upsert(key, record); // fire and forget
+    }
+  }
+  updateSyncStatus();
+}
+
+function updateSyncStatus() {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  if (CloudSync.isReady()) {
+    el.innerHTML = '<span style="display:inline-block;width:8px;height:8px;background:#5cb85c;border-radius:50%;margin-right:6px"></span>Cloud sync attivo';
+    el.style.color = '#5cb85c';
+  } else {
+    el.innerHTML = '<span style="display:inline-block;width:8px;height:8px;background:#999;border-radius:50%;margin-right:6px"></span>Solo locale';
+    el.style.color = '#999';
+  }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderSidebar() {
+  document.getElementById('sidebar').innerHTML = SECTION_ORDER.map(key => {
+    const cfg = SECTIONS[key];
+    const active = key === state.currentSection ? 'active' : '';
+    return `<div class="sidebar-item ${active}" onclick="switchSection('${key}')">
+      ${cfg.icon}<span>${cfg.title}</span>
+    </div>`;
+  }).join('');
+}
+
+function getFilteredSortedData() {
+  const cfg = SECTIONS[state.currentSection];
+  let data = [...(state.data[state.currentSection] || [])];
+
+  // filters
+  for (const col of cfg.columns) {
+    const f = state.filters[col.key];
+    if (!f) continue;
+    const lower = f.toLowerCase();
+    data = data.filter(row => String(formatCell(row, col)).toLowerCase().includes(lower));
+  }
+
+  // sort
+  if (state.sort.col) {
+    const col = cfg.columns.find(c => c.key === state.sort.col);
+    if (col) {
+      data.sort((a, b) => {
+        let va = formatCell(a, col), vb = formatCell(b, col);
+        // numeric sort if both numeric
+        const na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb) && String(na) === String(va) && String(nb) === String(vb)) {
+          return state.sort.dir === 'asc' ? na - nb : nb - na;
+        }
+        va = String(va).toLowerCase(); vb = String(vb).toLowerCase();
+        if (va < vb) return state.sort.dir === 'asc' ? -1 : 1;
+        if (va > vb) return state.sort.dir === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+  }
+  return data;
+}
+
+function renderSection() {
+  const cfg = SECTIONS[state.currentSection];
+  if (cfg.custom && state.currentSection === 'reportCheckins') {
+    return renderReportCheckins();
+  }
+  renderStandardSection();
+}
+
+// ============================================================
+// REPORT CHECK-INS
+// ============================================================
+function renderReportCheckins() {
+  const r = state.report;
+  const filtered = computeReportData();
+  const grouped = groupByDay(filtered);
+
+  // Statistiche
+  const totalCheckins = filtered.length;
+  const giorniCoperti = grouped.length;
+  const vigilantiSet = new Set(filtered.map(ci => ci.vigilante_id).filter(Boolean));
+  const struttureSet = new Set();
+  for (const ci of filtered) {
+    const t = state.data.tagNfc.find(t => t.id === ci.tag_id);
+    if (t) struttureSet.add(t.struttura_id);
+  }
+
+  document.getElementById('content').innerHTML = `
+    <div class="section-bar">
+      <div class="actions"></div>
+      <h1>Report Check-ins</h1>
+      <div class="actions right">
+        <button class="icon-btn" title="Stampa" onclick="window.print()">${I.print}</button>
+      </div>
+    </div>
+    <div class="report">
+      <div class="report-filters">
+        <h3>Filtri</h3>
+        <div class="filter-grid">
+          <div class="field">
+            <label>Cliente</label>
+            <select onchange="setReport('cliente_id', this.value)">
+              <option value="">— Tutti i clienti —</option>
+              ${state.data.clienti.map(c => `<option value="${c.id}" ${c.id === r.cliente_id ? 'selected' : ''}>${escape(clienteDisplay(c))}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <label>Vigilante</label>
+            <select onchange="setReport('vigilante_id', this.value)">
+              <option value="">— Tutti —</option>
+              ${state.data.vigilantes.map(v => `<option value="${v.id}" ${v.id === r.vigilante_id ? 'selected' : ''}>${escape(`${v.cognome || ''} ${v.nome || ''}`.trim())}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <label>Struttura</label>
+            <select onchange="setReport('struttura_id', this.value)">
+              <option value="">— Tutte —</option>
+              ${getStruttureForReport().map(s => `<option value="${s.id}" ${s.id === r.struttura_id ? 'selected' : ''}>${escape(s._label)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <label>Da</label>
+            <input type="date" value="${r.da}" onchange="setReport('da', this.value)">
+          </div>
+          <div class="field">
+            <label>A</label>
+            <input type="date" value="${r.a}" onchange="setReport('a', this.value)">
+          </div>
+        </div>
+        <div class="quick-buttons">
+          <button onclick="reportPreset('today')">Oggi</button>
+          <button onclick="reportPreset('week')">Settimana corrente</button>
+          <button onclick="reportPreset('month')">Mese corrente</button>
+          <button onclick="reportPreset('lastmonth')">Mese scorso</button>
+          <button onclick="reportPreset('30d')">Ultimi 30 giorni</button>
+          <button onclick="reportPreset('year')">Anno corrente</button>
+          <button onclick="reportPreset('clear')" style="margin-left:auto;color:var(--danger);border-color:rgba(217,83,79,0.3)">Azzera filtri</button>
+        </div>
+      </div>
+
+      <div class="report-summary">
+        <div class="summary-card">
+          <div class="label">Check-in totali</div>
+          <div class="value">${totalCheckins.toLocaleString('it-IT')}</div>
+          <div class="sub">${reportPeriodLabel()}</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Giorni con check-in</div>
+          <div class="value">${giorniCoperti}</div>
+          <div class="sub">${giorniCoperti ? `media ${(totalCheckins / giorniCoperti).toFixed(1)}/giorno` : '—'}</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Vigilanti coinvolti</div>
+          <div class="value">${vigilantiSet.size}</div>
+          <div class="sub">${vigilantiSet.size ? namesForVigilanti([...vigilantiSet]) : '—'}</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Strutture toccate</div>
+          <div class="value">${struttureSet.size}</div>
+          <div class="sub">su ${state.data.strutture.length} totali</div>
+        </div>
+      </div>
+
+      <div class="report-results">
+        <div class="toolbar">
+          <h3>Risultati</h3>
+          <div class="actions">
+            <div class="view-toggle">
+              <button class="${r.view === 'day' ? 'active' : ''}" onclick="setReport('view', 'day')">Per giorno</button>
+              <button class="${r.view === 'flat' ? 'active' : ''}" onclick="setReport('view', 'flat')">Tutti</button>
+            </div>
+            <button onclick="exportReportCsv()" title="Esporta CSV">${I.exp}<span>CSV</span></button>
+          </div>
+        </div>
+        <div class="results-body">
+          ${totalCheckins === 0
+            ? '<div class="empty-report">Nessun check-in con questi filtri.<br>Prova ad ampliare il periodo o cambiare cliente.</div>'
+            : (r.view === 'day' ? renderReportByDay(grouped) : renderReportFlat(filtered))
+          }
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function getStruttureForReport() {
+  const r = state.report;
+  let strutture = state.data.strutture;
+  if (r.cliente_id) strutture = strutture.filter(s => s.cliente_id === r.cliente_id);
+  return strutture.map(s => {
+    const tipo = state.data.tipiStrutture.find(t => t.id === s.tipo_struttura_id);
+    return {...s, _label: [tipo?.nome, s.nome].filter(Boolean).join(' — ')};
+  });
+}
+
+function setReport(key, value) {
+  state.report[key] = value;
+  if (key === 'cliente_id') {
+    // se cambio cliente, eventualmente la struttura selezionata non c'entra più
+    const s = state.data.strutture.find(s => s.id === state.report.struttura_id);
+    if (s && value && s.cliente_id !== value) state.report.struttura_id = '';
+  }
+  state.report.expanded = new Set();
+  renderSection();
+}
+
+function reportPeriodLabel() {
+  const r = state.report;
+  if (!r.da && !r.a) return 'tutto lo storico';
+  if (r.da && r.a) return `dal ${formatDateIT(r.da)} al ${formatDateIT(r.a)}`;
+  if (r.da) return `dal ${formatDateIT(r.da)}`;
+  return `fino al ${formatDateIT(r.a)}`;
+}
+
+function formatDateIT(yyyymmdd) {
+  if (!yyyymmdd) return '';
+  const [y, m, d] = yyyymmdd.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function reportPreset(kind) {
+  const today = new Date();
+  const fmt = d => d.toISOString().slice(0, 10);
+  if (kind === 'clear') {
+    state.report = {cliente_id: '', vigilante_id: '', struttura_id: '', da: '', a: '', view: state.report.view, expanded: new Set()};
+  } else if (kind === 'today') {
+    state.report.da = fmt(today); state.report.a = fmt(today);
+  } else if (kind === 'week') {
+    const day = today.getDay() || 7; // lunedì = 1
+    const monday = new Date(today); monday.setDate(today.getDate() - (day - 1));
+    state.report.da = fmt(monday); state.report.a = fmt(today);
+  } else if (kind === 'month') {
+    state.report.da = fmt(new Date(today.getFullYear(), today.getMonth(), 1));
+    state.report.a = fmt(today);
+  } else if (kind === 'lastmonth') {
+    const first = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const last = new Date(today.getFullYear(), today.getMonth(), 0);
+    state.report.da = fmt(first); state.report.a = fmt(last);
+  } else if (kind === '30d') {
+    const ago = new Date(today); ago.setDate(today.getDate() - 30);
+    state.report.da = fmt(ago); state.report.a = fmt(today);
+  } else if (kind === 'year') {
+    state.report.da = fmt(new Date(today.getFullYear(), 0, 1));
+    state.report.a = fmt(today);
+  }
+  state.report.expanded = new Set();
+  renderSection();
+}
+
+function computeReportData() {
+  const r = state.report;
+  // Pre-build una mappa tag → struttura → cliente per evitare lookup ripetuti su 20k record
+  const tagToInfo = new Map();
+  for (const tag of state.data.tagNfc) {
+    const struttura = state.data.strutture.find(s => s.id === tag.struttura_id);
+    tagToInfo.set(tag.id, {tag, struttura, cliente_id: struttura?.cliente_id});
+  }
+
+  const daTs = r.da ? new Date(r.da + 'T00:00:00').getTime() : null;
+  // Inclusivo: se "a" è 2025-03-31 includiamo fino a 2025-03-31 23:59:59
+  const aTs = r.a ? new Date(r.a + 'T23:59:59.999').getTime() : null;
+
+  const result = [];
+  for (const ci of state.data.checkins) {
+    const ts = new Date(ci.ora_scansione || ci.ora_ricezione).getTime();
+    if (daTs !== null && ts < daTs) continue;
+    if (aTs !== null && ts > aTs) continue;
+
+    const info = tagToInfo.get(ci.tag_id);
+    if (r.cliente_id) {
+      if (!info || info.cliente_id !== r.cliente_id) continue;
+    }
+    if (r.struttura_id) {
+      if (!info || !info.struttura || info.struttura.id !== r.struttura_id) continue;
+    }
+    if (r.vigilante_id && ci.vigilante_id !== r.vigilante_id) continue;
+
+    result.push(ci);
+  }
+  // ordina dal più recente
+  result.sort((a, b) => {
+    const ta = new Date(a.ora_scansione || a.ora_ricezione).getTime();
+    const tb = new Date(b.ora_scansione || b.ora_ricezione).getTime();
+    return tb - ta;
+  });
+  return result;
+}
+
+function groupByDay(checkins) {
+  // Raggruppa per giorno (YYYY-MM-DD locale)
+  const map = new Map();
+  for (const ci of checkins) {
+    const d = new Date(ci.ora_scansione || ci.ora_ricezione);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(ci);
+  }
+  // Array ordinato decrescente
+  return [...map.entries()]
+    .sort((a, b) => a[0] < b[0] ? 1 : -1)
+    .map(([day, items]) => ({day, items}));
+}
+
+function namesForVigilanti(ids) {
+  const max = 3;
+  const names = ids.map(id => {
+    const v = state.data.vigilantes.find(v => v.id === id);
+    return v ? `${v.cognome || ''} ${v.nome || ''}`.trim() : '?';
+  }).filter(Boolean);
+  if (names.length <= max) return names.join(', ');
+  return names.slice(0, max).join(', ') + ` +${names.length - max}`;
+}
+
+function renderReportByDay(grouped) {
+  return `<table class="report-table">
+    <thead>
+      <tr>
+        <th style="width:40px"></th>
+        <th>Giorno</th>
+        <th class="num" style="width:80px">Check-in</th>
+        <th style="width:120px">Primo / Ultimo</th>
+        <th>Vigilanti</th>
+        <th>Strutture</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${grouped.map(g => renderDayRow(g)).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderDayRow({day, items}) {
+  const expanded = state.report.expanded.has(day);
+  const times = items.map(ci => new Date(ci.ora_scansione || ci.ora_ricezione));
+  const sorted = [...times].sort((a, b) => a - b);
+  const first = sorted[0], last = sorted[sorted.length - 1];
+  const vigSet = new Set(items.map(ci => ci.vigilante_id).filter(Boolean));
+  const struSet = new Set();
+  for (const ci of items) {
+    const t = state.data.tagNfc.find(t => t.id === ci.tag_id);
+    if (t) struSet.add(t.struttura_id);
+  }
+  const dayLabel = formatDayLabel(day);
+  const detailRow = expanded ? `
+    <tr class="detail-row">
+      <td colspan="6">
+        <div class="detail-list">
+          ${items.map(ci => renderDetailItem(ci)).join('')}
+        </div>
+      </td>
+    </tr>` : '';
+
+  return `
+    <tr class="day-row ${expanded ? 'expanded' : ''}" onclick="toggleDay('${day}')">
+      <td><span class="expand-ind">▶</span></td>
+      <td class="day">${dayLabel}</td>
+      <td class="num">${items.length}</td>
+      <td class="muted">${formatTimeShort(first)} → ${formatTimeShort(last)}</td>
+      <td>${escape(namesForVigilanti([...vigSet]))}</td>
+      <td class="muted">${struSet.size} ${struSet.size === 1 ? 'struttura' : 'strutture'}</td>
+    </tr>
+    ${detailRow}
+  `;
+}
+
+function renderDetailItem(ci) {
+  const d = new Date(ci.ora_scansione || ci.ora_ricezione);
+  const t = state.data.tagNfc.find(t => t.id === ci.tag_id);
+  const s = t ? state.data.strutture.find(s => s.id === t.struttura_id) : null;
+  const v = state.data.vigilantes.find(v => v.id === ci.vigilante_id);
+  return `<div class="detail-item">
+    <span class="time">${formatTimeShort(d)}</span>
+    <span class="vig">${escape(v ? `${v.cognome || ''} ${v.nome || ''}`.trim() : '?')}</span>
+    <span class="struct">${escape(t ? (t.descrizione || '') : '')}${s ? ` — ${escape(s.nome)}` : ''}</span>
+    <span class="ip muted">${ci.manuale ? 'manuale · ' : ''}${escape(ci.ip_address || '')}</span>
+  </div>`;
+}
+
+function renderReportFlat(checkins) {
+  return `<table class="report-table">
+    <thead>
+      <tr>
+        <th>Data/Ora</th>
+        <th>Cliente</th>
+        <th>Struttura</th>
+        <th>Tag</th>
+        <th>Vigilante</th>
+        <th class="num">Manuale</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${checkins.map(ci => {
+        const t = state.data.tagNfc.find(t => t.id === ci.tag_id);
+        const s = t ? state.data.strutture.find(s => s.id === t.struttura_id) : null;
+        const c = s ? state.data.clienti.find(c => c.id === s.cliente_id) : null;
+        const v = state.data.vigilantes.find(v => v.id === ci.vigilante_id);
+        return `<tr>
+          <td>${formatDateTime(ci.ora_scansione || ci.ora_ricezione)}</td>
+          <td>${escape(c ? clienteDisplay(c) : '')}</td>
+          <td>${escape(s?.nome || '')}</td>
+          <td>${escape(t?.descrizione || '')}</td>
+          <td>${escape(v ? `${v.cognome || ''} ${v.nome || ''}`.trim() : '')}</td>
+          <td class="num muted">${ci.manuale ? 'SI' : ''}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function formatDayLabel(yyyymmdd) {
+  const [y, m, d] = yyyymmdd.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const giorni = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+  return `${giorni[date.getDay()]} ${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
+}
+
+function formatTimeShort(d) {
+  if (!d) return '';
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function toggleDay(day) {
+  if (state.report.expanded.has(day)) state.report.expanded.delete(day);
+  else state.report.expanded.add(day);
+  renderSection();
+}
+
+function exportReportCsv() {
+  const data = computeReportData();
+  const headers = ['Data', 'Ora', 'Cliente', 'Struttura', 'Tag', 'Vigilante', 'Latitudine', 'Longitudine', 'Manuale', 'IP'];
+  const rows = data.map(ci => {
+    const t = state.data.tagNfc.find(t => t.id === ci.tag_id);
+    const s = t ? state.data.strutture.find(s => s.id === t.struttura_id) : null;
+    const c = s ? state.data.clienti.find(c => c.id === s.cliente_id) : null;
+    const v = state.data.vigilantes.find(v => v.id === ci.vigilante_id);
+    const d = new Date(ci.ora_scansione || ci.ora_ricezione);
+    return [
+      `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`,
+      `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`,
+      c ? clienteDisplay(c) : '',
+      s?.nome || '',
+      t?.descrizione || '',
+      v ? `${v.cognome || ''} ${v.nome || ''}`.trim() : '',
+      ci.latitudine ?? '',
+      ci.longitudine ?? '',
+      ci.manuale ? 'SI' : 'NO',
+      ci.ip_address || '',
+    ];
+  });
+  const escapeCsv = v => /[",\n;]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+  const csv = [headers.join(';'), ...rows.map(r => r.map(escapeCsv).join(';'))].join('\n');
+  const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+
+  const r = state.report;
+  const cliente = r.cliente_id ? state.data.clienti.find(c => c.id === r.cliente_id) : null;
+  const slug = (cliente ? clienteDisplay(cliente) : 'tutti').replace(/[^a-z0-9]+/gi, '_').toLowerCase().slice(0, 30);
+  const periodo = (r.da || 'inizio') + '_' + (r.a || 'oggi');
+  a.href = url;
+  a.download = `report_checkins_${slug}_${periodo}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// STANDARD SECTIONS RENDER
+// ============================================================
+function renderStandardSection() {
+  const cfg = SECTIONS[state.currentSection];
+  const data = getFilteredSortedData();
+  const total = data.length;
+  const totalPages = Math.max(1, Math.ceil(total / state.perPage));
+  if (state.page > totalPages) state.page = totalPages;
+  const start = (state.page - 1) * state.perPage;
+  const end = Math.min(start + state.perPage, total);
+  const pageData = data.slice(start, end);
+
+  const showActions = !!cfg.rw;
+  const colCount = cfg.columns.length + (showActions ? 1 : 0);
+
+  document.getElementById('content').innerHTML = `
+    <div class="section-bar">
+      <div class="actions">
+        ${cfg.rw ? `<button class="icon-btn" title="Nuovo" onclick="openForm()">${I.add}</button>` : ''}
+      </div>
+      <h1>${cfg.title}</h1>
+      <div class="actions right">
+        <button class="icon-btn" title="Stampa" onclick="window.print()">${I.print}</button>
+        <button class="icon-btn" title="Esporta CSV" onclick="exportCsv()">${I.exp}</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr class="col-header">
+            ${cfg.columns.map(col => `
+              <th onclick="sortBy('${col.key}')" ${col.width ? `style="width:${col.width}px"` : ''}
+                  class="${state.sort.col === col.key ? 'sorted' : ''}">
+                ${col.label}
+                <span class="sort-ind">${state.sort.col === col.key ? (state.sort.dir === 'asc' ? '▲' : '▼') : '▲▼'}</span>
+              </th>
+            `).join('')}
+            ${showActions ? '<th class="no-sort" style="width:90px"></th>' : ''}
+          </tr>
+          <tr class="filter-row">
+            ${cfg.columns.map(col => `
+              <th><input type="text" placeholder="" value="${escape(state.filters[col.key] || '')}"
+                     oninput="setFilter('${col.key}', this.value)"></th>
+            `).join('')}
+            ${showActions ? '<th class="no-filter"><input type="text"></th>' : ''}
+          </tr>
+        </thead>
+        <tbody>
+          ${pageData.length === 0 ? `
+            <tr class="empty-row"><td class="empty" colspan="${colCount}">Nessun risultato.</td></tr>
+          ` : pageData.map(row => `
+            <tr onclick="openForm('${row.id}')">
+              ${cfg.columns.map(col => {
+                const v = formatCell(row, col);
+                // Se il valore inizia con < si tratta di HTML pre-renderizzato dal formatter (es. badge)
+                const isHtml = typeof v === 'string' && v.startsWith('<');
+                return `<td>${isHtml ? v : escape(v)}</td>`;
+              }).join('')}
+              ${showActions ? `<td class="row-actions" onclick="event.stopPropagation()">
+                <button title="Modifica" onclick="openForm('${row.id}')">${I.edit}</button>
+                <button class="delete" title="Elimina" onclick="deleteRecord('${row.id}')">${I.trash}</button>
+              </td>` : ''}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <span>Risultati <strong>${total ? start + 1 : 0}</strong> - <strong>${end}</strong> di <strong>${total}</strong></span>
+      <div class="pages">${renderPageButtons(totalPages)}</div>
+    </div>
+  `;
+}
+
+function renderPageButtons(totalPages) {
+  const cur = state.page;
+  let html = `<button onclick="goToPage(${cur-1})" ${cur === 1 ? 'disabled' : ''}>Precedente</button>`;
+  const set = new Set([1, totalPages, cur, cur-1, cur+1]);
+  if (totalPages <= 7) for (let i = 1; i <= totalPages; i++) set.add(i);
+  const pages = [...set].filter(p => p >= 1 && p <= totalPages).sort((a,b)=>a-b);
+  let last = 0;
+  for (const p of pages) {
+    if (last && p - last > 1) html += `<span class="ellipsis">...</span>`;
+    html += `<button class="${p === cur ? 'active' : ''}" onclick="goToPage(${p})">${p}</button>`;
+    last = p;
+  }
+  html += `<button onclick="goToPage(${cur+1})" ${cur === totalPages ? 'disabled' : ''}>Prossima</button>`;
+  return html;
+}
+
+// ============================================================
+// EVENT HANDLERS
+// ============================================================
+function switchSection(key) {
+  state.currentSection = key;
+  state.filters = {};
+  state.page = 1;
+  const cfg = SECTIONS[key];
+  if (!cfg.custom) {
+    state.sort = {col: cfg.sortInitial || null, dir: cfg.sortDir || 'asc'};
+  }
+  renderSidebar();
+  renderSection();
+}
+
+function setFilter(col, val) {
+  if (val) state.filters[col] = val;
+  else delete state.filters[col];
+  state.page = 1;
+  // re-render only the table body to preserve focus on the filter input
+  const focused = document.activeElement;
+  const focusedSelector = focused?.tagName === 'INPUT' ? focused.getAttribute('oninput') : null;
+  renderSection();
+  if (focusedSelector) {
+    const el = document.querySelector(`input[oninput="${focusedSelector.replace(/"/g, '\\"')}"]`);
+    if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  }
+}
+
+function sortBy(col) {
+  if (state.sort.col === col) {
+    state.sort.dir = state.sort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    state.sort.col = col;
+    state.sort.dir = 'asc';
+  }
+  renderSection();
+}
+
+function goToPage(p) {
+  state.page = p;
+  renderSection();
+}
+
+// ============================================================
+// FORM / MODAL
+// ============================================================
+function openForm(id) {
+  const cfg = SECTIONS[state.currentSection];
+  if (!cfg.rw) return;
+  const record = id ? state.data[state.currentSection].find(r => r.id === id) : null;
+  const isEdit = !!record;
+  state.currentEditingId = id || null;
+
+  // In edit mode: arricchisci il record con i campi virtuali (_) recuperati dal Utente collegato
+  let augmented = record ? {...record} : null;
+
+  // In create mode con defaults forniti da openInlineForm: precompila i campi
+  if (!record && window._inlineDefaults) {
+    augmented = { ...window._inlineDefaults };
+    window._inlineDefaults = null;
+  }
+
+  if (record && state.currentSection === 'vigilantes') {
+    const u = state.data.utenti.find(u => u.vigilante_id === record.id);
+    if (u) {
+      augmented._username = u.username;
+      augmented._password = u.password;
+    }
+  } else if (record && state.currentSection === 'clienti') {
+    const u = state.data.utenti.find(u => u.cliente_id === record.id);
+    if (u) {
+      augmented._portale_attivo = true;
+      augmented._portale_username = u.username;
+      augmented._portale_password = u.password;
+    }
+  }
+
+  // Costruisce HTML del form. Se formLayout è 'two-cols', raggruppa per "group" e mostra card affiancate
+  let formHtml = '';
+  if (cfg.formLayout === 'two-cols') {
+    formHtml = buildTwoColsForm(cfg.formFields, augmented);
+  } else {
+    formHtml = (cfg.formFields || []).map(f => renderField(f, augmented)).join('');
+  }
+
+  // Se siamo nei check-in con coordinate, aggiungo un'anteprima mappa nel form
+  let mapHtml = '';
+  if (state.currentSection === 'checkins' && augmented && augmented.latitudine != null && augmented.longitudine != null) {
+    const lat = Number(augmented.latitudine);
+    const lng = Number(augmented.longitudine);
+    mapHtml = `
+      <div class="full" style="margin-top:6px">
+        <label style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#5d6c7b;margin-bottom:5px;font-weight:500">Posizione sulla mappa</label>
+        <a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" rel="noopener" style="display:block;border:1px solid #d8dde2;border-radius:5px;overflow:hidden;text-decoration:none">
+          <img src="https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=16&size=680x240&markers=${lat},${lng},red-pushpin" alt="Mappa GPS" style="display:block;width:100%;height:auto">
+          <div style="padding:8px 12px;background:#f5f7f9;font-size:12px;color:#5d6c7b">📍 ${lat.toFixed(5)}, ${lng.toFixed(5)} — Tocca per aprire in Google Maps</div>
+        </a>
+      </div>
+    `;
+  }
+
+  // Blocchi "Entità collegate" — solo in edit mode, per accorciare i flussi di inserimento
+  let childrenHtml = '';
+  if (isEdit) {
+    if (state.currentSection === 'clienti') {
+      childrenHtml = renderClienteChildren(record);
+    } else if (state.currentSection === 'aziende') {
+      childrenHtml = renderAziendaChildren(record);
+    } else if (state.currentSection === 'zone') {
+      childrenHtml = renderZonaChildren(record);
+    }
+  }
+
+  document.getElementById('modal').classList.toggle('wide', cfg.formLayout === 'two-cols');
+  // Se 2-cols, le card si occupano da sole della struttura: niente form-grid esterno
+  const bodyContent = cfg.formLayout === 'two-cols'
+    ? `${formHtml}${mapHtml}${childrenHtml}`
+    : `<div class="form-grid">${formHtml}${mapHtml}</div>${childrenHtml}`;
+  document.getElementById('modal').innerHTML = `
+    <div class="modal-header">
+      <h2>${isEdit ? 'Modifica' : 'Nuovo'} ${cfg.singular}</h2>
+      <button onclick="closeModal()" title="Chiudi">×</button>
+    </div>
+    <div class="modal-body">
+      ${bodyContent}
+    </div>
+    <div class="modal-footer">
+      <div class="left">
+        ${isEdit ? `<button class="btn btn-danger" onclick="deleteRecord('${id}')">Elimina</button>` : ''}
+      </div>
+      <div class="right">
+        <button class="btn" onclick="closeModal()">Annulla</button>
+        <button class="btn btn-primary" onclick="saveForm('${id || ''}')">Salva</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('modal-overlay').hidden = false;
+  // Attiva la logica di visibilità condizionale dei campi
+  updateConditionalFields();
+}
+
+// ============================================================
+// CHILD ENTITIES (aziende → strutture, zone → strutture)
+// ============================================================
+function renderClienteChildren(cliente) {
+  const aziende = (state.data.aziende || []).filter(a => a.cliente_id === cliente.id);
+  return `
+    <div class="children-section">
+      <div class="children-header">
+        <h3>Aziende di ${escape(clienteDisplay(cliente))}</h3>
+        <button class="btn btn-primary btn-small" onclick="openInlineForm('aziende', null, {cliente_id: '${cliente.id}'})">
+          <span style="font-size:16px;line-height:1">+</span> Nuova azienda
+        </button>
+      </div>
+      ${aziende.length === 0
+        ? '<div class="children-empty">Nessuna azienda. Crea la prima sopra ↑</div>'
+        : aziende.map(a => {
+            const strs = state.data.strutture.filter(s => s.azienda_id === a.id);
+            return `
+              <div class="children-card">
+                <div class="children-card-head">
+                  <div>
+                    <strong>${escape(a.ragione_sociale)}</strong>
+                    <span class="children-meta">${escape([a.partita_iva, a.indirizzo, a.paese].filter(Boolean).join(' · '))}</span>
+                  </div>
+                  <div class="children-card-actions">
+                    <button class="btn-link" onclick="openInlineForm('aziende', '${a.id}')">Modifica</button>
+                    <button class="btn-link" onclick="openInlineForm('strutture', null, {azienda_id: '${a.id}'})">+ Struttura</button>
+                  </div>
+                </div>
+                ${strs.length === 0
+                  ? '<div class="children-sub-empty">Nessuna struttura</div>'
+                  : `<div class="children-sublist">${strs.map(s => {
+                      const tipo = state.data.tipiStrutture.find(t => t.id === s.tipo_struttura_id);
+                      const zona = (state.data.zone || []).find(z => z.id === s.zona_id);
+                      return `<div class="children-sub-row" onclick="openInlineForm('strutture', '${s.id}')">
+                        <span class="sub-name">${escape(s.nome)}</span>
+                        <span class="sub-meta">${escape([tipo?.nome, zona?.nome, s.indirizzo].filter(Boolean).join(' · '))}</span>
+                      </div>`;
+                    }).join('')}</div>`
+                }
+              </div>
+            `;
+          }).join('')}
+    </div>
+  `;
+}
+
+function renderAziendaChildren(azienda) {
+  const strs = state.data.strutture.filter(s => s.azienda_id === azienda.id);
+  return `
+    <div class="children-section">
+      <div class="children-header">
+        <h3>Strutture di ${escape(azienda.ragione_sociale)}</h3>
+        <button class="btn btn-primary btn-small" onclick="openInlineForm('strutture', null, {azienda_id: '${azienda.id}'})">
+          <span style="font-size:16px;line-height:1">+</span> Nuova struttura
+        </button>
+      </div>
+      ${strs.length === 0
+        ? '<div class="children-empty">Nessuna struttura. Crea la prima sopra ↑</div>'
+        : strs.map(s => {
+            const tipo = state.data.tipiStrutture.find(t => t.id === s.tipo_struttura_id);
+            const zona = (state.data.zone || []).find(z => z.id === s.zona_id);
+            const tags = state.data.tagNfc.filter(t => t.struttura_id === s.id);
+            return `
+              <div class="children-card">
+                <div class="children-card-head">
+                  <div>
+                    <strong>${escape(s.nome)}</strong>
+                    <span class="children-meta">${escape([tipo?.nome, zona?.nome, s.indirizzo].filter(Boolean).join(' · '))}</span>
+                  </div>
+                  <div class="children-card-actions">
+                    <button class="btn-link" onclick="openInlineForm('strutture', '${s.id}')">Modifica</button>
+                    <button class="btn-link" onclick="openInlineForm('tagNfc', null, {struttura_id: '${s.id}'})">+ Tag NFC</button>
+                  </div>
+                </div>
+                ${tags.length > 0 ? `
+                  <div class="children-sublist">${tags.map(t => `
+                    <div class="children-sub-row" onclick="openInlineForm('tagNfc', '${t.id}')">
+                      <span class="sub-name">${escape(t.descrizione)}</span>
+                      <span class="sub-meta tag-code">${escape(t.codice_nfc)}</span>
+                    </div>`).join('')}</div>` : ''}
+              </div>
+            `;
+          }).join('')}
+    </div>
+  `;
+}
+
+function renderZonaChildren(zona) {
+  const strs = state.data.strutture.filter(s => s.zona_id === zona.id);
+  const vigs = state.data.vigilantes.filter(v => (v.zone_ids || []).includes(zona.id));
+  return `
+    <div class="children-section">
+      <div class="children-header">
+        <h3>Strutture nella zona</h3>
+        <span class="children-sub-info">${strs.length} ${strs.length === 1 ? 'struttura' : 'strutture'}</span>
+      </div>
+      ${strs.length === 0
+        ? '<div class="children-empty">Nessuna struttura assegnata a questa zona.<br>Vai su Strutture per assegnarne.</div>'
+        : strs.map(s => {
+            const a = (state.data.aziende || []).find(a => a.id === s.azienda_id);
+            return `<div class="children-card">
+              <div class="children-card-head">
+                <div>
+                  <strong>${escape(s.nome)}</strong>
+                  <span class="children-meta">${escape([a?.ragione_sociale, s.indirizzo].filter(Boolean).join(' · '))}</span>
+                </div>
+                <div class="children-card-actions">
+                  <button class="btn-link" onclick="openInlineForm('strutture', '${s.id}')">Modifica</button>
+                </div>
+              </div>
+            </div>`;
+          }).join('')}
+
+      <div class="children-header" style="margin-top:20px">
+        <h3>Vigilantes assegnati</h3>
+        <span class="children-sub-info">${vigs.length}</span>
+      </div>
+      ${vigs.length === 0
+        ? '<div class="children-empty">Nessun vigilante assegnato a questa zona.</div>'
+        : vigs.map(v => `<div class="children-card">
+            <div class="children-card-head">
+              <div><strong>${escape(`${v.cognome || ''} ${v.nome || ''}`.trim())}</strong>
+                <span class="children-meta">Matricola ${escape(v.matricola || '—')}</span>
+              </div>
+              <div class="children-card-actions">
+                <button class="btn-link" onclick="openInlineForm('vigilantes', '${v.id}')">Modifica</button>
+              </div>
+            </div>
+          </div>`).join('')}
+    </div>
+  `;
+}
+
+// Apre form di una sezione diversa, salvando lo stack di navigazione
+// per tornare al precedente al chiusura
+window._modalStack = window._modalStack || [];
+function openInlineForm(targetSection, recordId, defaults) {
+  // Salva lo stato corrente nello stack
+  window._modalStack.push({
+    section: state.currentSection,
+    recordId: state.currentEditingId || null,
+  });
+  // Cambia sezione temporaneamente
+  state.currentSection = targetSection;
+  // Pre-fill defaults nel record nuovo
+  if (!recordId && defaults) {
+    window._inlineDefaults = defaults;
+  } else {
+    window._inlineDefaults = null;
+  }
+  openForm(recordId);
+}
+
+// Quando chiudo il modal, se c'è uno stack, riapro il precedente
+function closeModalAndReturn() {
+  if (window._modalStack && window._modalStack.length > 0) {
+    const prev = window._modalStack.pop();
+    state.currentSection = prev.section;
+    closeModal();
+    if (prev.recordId) {
+      setTimeout(() => openForm(prev.recordId), 50);
+    }
+  } else {
+    closeModal();
+  }
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').hidden = true;
+  document.getElementById('modal').innerHTML = '';
+}
+
+// Toast leggero per conferme inline
+let _toastTimer = null;
+// ============================================================
+// AUTOCOMPLETE INDIRIZZO (Nominatim OpenStreetMap, gratis)
+// ============================================================
+const _addrCache = {};
+let _addrTimer = null;
+
+function addrAutocomplete(input) {
+  clearTimeout(_addrTimer);
+  const query = input.value.trim();
+  const results = document.getElementById('addr-results-' + input.id);
+  if (!results) return;
+  if (query.length < 3) { results.style.display = 'none'; return; }
+
+  _addrTimer = setTimeout(async () => {
+    let data;
+    if (_addrCache[query]) {
+      data = _addrCache[query];
+    } else {
+      try {
+        const resp = await fetch(
+          'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=it&accept-language=it&q=' + encodeURIComponent(query),
+          { headers: { 'Accept-Language': 'it' } }
+        );
+        if (!resp.ok) { results.style.display = 'none'; return; }
+        data = await resp.json();
+        _addrCache[query] = data;
+      } catch (e) {
+        results.style.display = 'none';
+        return;
+      }
+    }
+    if (!data.length) {
+      results.innerHTML = '<div class="addr-empty">Nessun risultato</div>';
+      results.style.display = 'block';
+      return;
+    }
+    results.innerHTML = data.map((r, i) => {
+      const a = r.address || {};
+      const display = r.display_name || '';
+      const short = [a.road, a.house_number, a.city || a.town || a.village || a.municipality, a.postcode, a.country_code?.toUpperCase()].filter(Boolean).join(', ');
+      return `<div class="addr-result" data-idx="${i}">
+        <div class="addr-result-main">${escape(short || display.split(',').slice(0, 4).join(','))}</div>
+        <div class="addr-result-sub">${escape(display)}</div>
+      </div>`;
+    }).join('');
+    results.style.display = 'block';
+
+    // Click handler su ogni risultato
+    results.querySelectorAll('.addr-result').forEach((el, idx) => {
+      el.addEventListener('mousedown', e => {
+        e.preventDefault();  // evita blur
+        applyAddressResult(input, data[idx]);
+        results.style.display = 'none';
+      });
+    });
+  }, 350);
+}
+
+function applyAddressResult(input, result) {
+  const a = result.address || {};
+  // Compongo "Via X, civico" se possibile
+  const road = a.road || a.pedestrian || a.path || '';
+  const house = a.house_number || '';
+  const newAddr = road + (house ? ', ' + house : '');
+  input.value = newAddr || result.display_name.split(',')[0];
+
+  // Leggi mappa autocompleteFills dal dataset
+  let fills = {};
+  try { fills = JSON.parse(input.dataset.fills || '{}'); } catch (_) {}
+
+  const setVal = (fieldKey, value) => {
+    if (!fieldKey || value == null || value === '') return;
+    const el = document.getElementById('f-' + fieldKey);
+    if (el) el.value = value;
+  };
+
+  setVal(fills.paese, a.city || a.town || a.village || a.municipality || a.county || '');
+  setVal(fills.provincia, (a['ISO3166-2-lvl6'] || a.state_code || '').replace(/^IT-/, '').slice(0, 2).toUpperCase() || provinciaFromCounty(a));
+  setVal(fills.cap, a.postcode || '');
+  setVal(fills.latitudine, result.lat || '');
+  setVal(fills.longitudine, result.lon || '');
+
+  // Se c'è un campo civico separato e non l'avevo già messo nell'indirizzo
+  const civicoEl = document.getElementById('f-civico');
+  if (civicoEl && !civicoEl.value && house) civicoEl.value = house;
+}
+
+// Estrae sigla provincia (TV, VE, ...) dal county di Nominatim
+function provinciaFromCounty(addr) {
+  // Nominatim spesso restituisce "Provincia di Treviso" in addr.county
+  const m = (addr.county || '').match(/Provincia di (\w+)/i);
+  if (!m) return '';
+  const PROVINCE_MAP = {
+    Treviso:'TV', Venezia:'VE', Padova:'PD', Vicenza:'VI', Verona:'VR', Belluno:'BL', Rovigo:'RO',
+    Milano:'MI', Roma:'RM', Torino:'TO', Bologna:'BO', Firenze:'FI', Napoli:'NA', Palermo:'PA',
+    Genova:'GE', Trento:'TN', Bolzano:'BZ', Pordenone:'PN', Udine:'UD', Trieste:'TS', Gorizia:'GO',
+    Brescia:'BS', Bergamo:'BG', Como:'CO', Lecco:'LC', Varese:'VA', Pavia:'PV', Cremona:'CR', Mantova:'MN',
+  };
+  return PROVINCE_MAP[m[1]] || '';
+}
+
+function showToast(text, kind) {
+  let el = document.getElementById('vis-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'vis-toast';
+    el.style.cssText = `
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1f2937; color: white; padding: 10px 20px; border-radius: 24px;
+      font-size: 13px; z-index: 9999; opacity: 0; transition: all 0.22s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25); pointer-events: none;
+      max-width: 80vw; text-align: center;
+    `;
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  if (kind === 'success') el.style.background = '#10b981';
+  else el.style.background = '#1f2937';
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 2400);
+}
+
+// ============================================================
+// 2-COLUMN FORM (stile screenshot del nuovo Cliente)
+// ============================================================
+// Trasforma una sequenza piatta di formFields con "group" left/right/full
+// in due colonne di card. Ogni section apre una nuova card.
+function buildTwoColsForm(fields, record) {
+  // Suddivide i campi in "rows", dove ogni row è un livello di card affiancate
+  // - Tutti i campi che condividono lo stesso "level" (lo stesso indice di full-section incontrata) vanno nella stessa riga
+  // Strategia semplice: ogni section apre/chiude una card; full section va da sola in full-width
+
+  // Raccoglie i campi in gruppi: array di {group, sectionField, fields:[]}
+  const cards = [];
+  let currentCard = null;
+
+  for (const f of fields) {
+    if (f.section) {
+      // Skippa se createOnly e siamo in edit
+      if (f.createOnly && record && record.id) {
+        currentCard = null;
+        continue;
+      }
+      currentCard = { group: f.group || 'full', sectionField: f, fields: [] };
+      cards.push(currentCard);
+    } else {
+      // Skippa field createOnly in edit
+      if (f.createOnly && record && record.id) continue;
+      if (currentCard) currentCard.fields.push(f);
+    }
+  }
+
+  // Raggruppa le card in righe a 2 colonne: una card 'left' + una 'right' diventano una riga,
+  // una card 'full' è una riga da sola
+  let html = '';
+  let pendingLeft = null;
+
+  for (const card of cards) {
+    if (card.group === 'left') {
+      if (pendingLeft) {
+        // Chiudo prima la pending senza partner
+        html += `<div class="form-row-2cols"><div class="form-card">${renderCard(pendingLeft, record)}</div></div>`;
+        pendingLeft = null;
+      }
+      pendingLeft = card;
+    } else if (card.group === 'right') {
+      if (pendingLeft) {
+        html += `<div class="form-row-2cols"><div class="form-card">${renderCard(pendingLeft, record)}</div><div class="form-card">${renderCard(card, record)}</div></div>`;
+        pendingLeft = null;
+      } else {
+        html += `<div class="form-row-2cols"><div class="form-card empty"></div><div class="form-card">${renderCard(card, record)}</div></div>`;
+      }
+    } else { // full
+      if (pendingLeft) {
+        html += `<div class="form-row-2cols"><div class="form-card">${renderCard(pendingLeft, record)}</div></div>`;
+        pendingLeft = null;
+      }
+      html += `<div class="form-row-full"><div class="form-card">${renderCard(card, record)}</div></div>`;
+    }
+  }
+  if (pendingLeft) {
+    html += `<div class="form-row-2cols"><div class="form-card">${renderCard(pendingLeft, record)}</div></div>`;
+  }
+  return html;
+}
+
+function renderCard(card, record) {
+  const s = card.sectionField;
+  const condAttr = s.requireWhen ? ` data-requires-section="${s.requireWhen}"` : '';
+  const cardWrapStart = s.requireWhen ? `<div class="form-card-inner"${condAttr}>` : '';
+  const cardWrapEnd = s.requireWhen ? '</div>' : '';
+  return `<div class="form-card-header"><h3>${escape(s.section)}</h3>${s.desc ? `<div class="card-desc">${escape(s.desc)}</div>` : ''}</div>
+    ${cardWrapStart}<div class="form-card-body">${card.fields.map(f => renderField(f, record)).join('')}</div>${cardWrapEnd}`;
+}
+
+function renderField(f, record) {
+  // Sezioni del form (titoli)
+  if (f.section) {
+    // createOnly: la sezione viene mostrata solo in creazione (record null)
+    if (f.createOnly && record && record.id) return '';
+    const condAttr = f.requireWhen ? `data-requires-section="${f.requireWhen}"` : '';
+    return `<div class="form-section" ${condAttr}>
+      <h3>${escape(f.section)}</h3>
+      ${f.desc ? `<div class="desc">${escape(f.desc)}</div>` : ''}
+    </div>`;
+  }
+
+  // createOnly: campo mostrato solo in creazione, non in modifica
+  if (f.createOnly && record && record.id) return '';
+
+  const val = record ? (record[f.key] ?? '') : (f.default ?? '');
+  const fullCls = f.full ? 'full' : '';
+  const condAttr = f.requireWhen ? `data-requires="${f.requireWhen}"` : '';
+  const id = `f-${f.key}`;
+  const reqMark = f.required ? '<span class="required">*</span>' : '';
+  const placeholder = f.placeholder ? `placeholder="${escape(f.placeholder)}"` : '';
+
+  if (f.type === 'checkbox') {
+    const onchange = f.conditional ? 'onchange="updateConditionalFields()"' : '';
+    return `<div class="field ${fullCls}" ${condAttr}><div class="field-checkbox">
+      <input type="checkbox" id="${id}" ${val ? 'checked' : ''} ${onchange}>
+      <label for="${id}">${escape(f.label)}${reqMark}</label>
+    </div></div>`;
+  }
+
+  let input;
+  if (f.type === 'select-cliente' || f.type === 'select-cliente-opt') {
+    const empty = f.type === 'select-cliente-opt' ? '— Nessuno —' : '— Seleziona —';
+    input = `<select id="${id}"><option value="">${empty}</option>` +
+      state.data.clienti.map(c => `<option value="${c.id}" ${c.id === val ? 'selected' : ''}>${escape(clienteDisplay(c))}</option>`).join('') + '</select>';
+  } else if (f.type === 'select-vigilante' || f.type === 'select-vigilante-opt') {
+    const empty = f.type === 'select-vigilante-opt' ? '— Nessuno —' : '— Seleziona —';
+    input = `<select id="${id}"><option value="">${empty}</option>` +
+      state.data.vigilantes.map(v => `<option value="${v.id}" ${v.id === val ? 'selected' : ''}>${escape(`${v.cognome || ''} ${v.nome || ''}`.trim())}</option>`).join('') + '</select>';
+  } else if (f.type === 'select-tipo') {
+    input = `<select id="${id}"><option value="">— Seleziona —</option>` +
+      state.data.tipiStrutture.map(t => `<option value="${t.id}" ${t.id === val ? 'selected' : ''}>${escape(t.nome)}</option>`).join('') + '</select>';
+  } else if (f.type === 'select-options') {
+    const opts = f.options || [];
+    input = `<select id="${id}"><option value="">—</option>` +
+      opts.map(o => `<option value="${escape(o)}" ${o === val ? 'selected' : ''}>${escape(o)}</option>`).join('') + '</select>';
+  } else if (f.type === 'select-sino') {
+    const b = val === true || val === 'true' || val === 'SI';
+    input = `<select id="${id}"><option value="true" ${b ? 'selected' : ''}>SI</option><option value="false" ${!b ? 'selected' : ''}>NO</option></select>`;
+  } else if (f.type === 'date') {
+    const v = val ? String(val).slice(0, 10) : '';
+    input = `<input type="date" id="${id}" value="${v}">`;
+  } else if (f.type === 'textarea') {
+    input = `<textarea id="${id}" rows="3" ${placeholder}>${escape(val)}</textarea>`;
+  } else if (f.type === 'hidden') {
+    return `<input type="hidden" id="${id}" value="${escape(val)}">`;
+  } else if (f.type === 'address-autocomplete') {
+    // Salvo la mappa autocompleteFills come JSON sull'input per recuperarla all'onInput
+    const fillsJson = JSON.stringify(f.autocompleteFills || {});
+    input = `<div class="addr-autocomplete-wrap">
+      <input type="text" id="${id}" value="${escape(val)}" ${placeholder} autocomplete="off"
+        data-fills='${escape(fillsJson)}'
+        oninput="addrAutocomplete(this)"
+        onfocus="addrAutocomplete(this)"
+        onblur="setTimeout(()=>{ const w = document.getElementById('addr-results-' + this.id); if (w) w.style.display='none'; }, 200)">
+      <div class="addr-results" id="addr-results-${id}"></div>
+    </div>`;
+  } else if (f.type === 'select-struttura') {
+    input = `<select id="${id}"><option value="">— Seleziona —</option>` +
+      state.data.strutture.map(s => {
+        const a = (state.data.aziende || []).find(a => a.id === s.azienda_id);
+        return `<option value="${s.id}" ${s.id === val ? 'selected' : ''}>${escape(s.nome + (a ? ' — ' + aziendaDisplay(a) : ''))}</option>`;
+      }).join('') + '</select>';
+  } else if (f.type === 'select-azienda') {
+    input = `<select id="${id}"><option value="">— Seleziona —</option>` +
+      (state.data.aziende || []).map(a => {
+        const c = state.data.clienti.find(c => c.id === a.cliente_id);
+        return `<option value="${a.id}" ${a.id === val ? 'selected' : ''}>${escape(aziendaDisplay(a) + (c ? ' — ' + clienteDisplay(c) : ''))}</option>`;
+      }).join('') + '</select>';
+  } else if (f.type === 'select-zona') {
+    input = `<select id="${id}"><option value="">— Nessuna zona —</option>` +
+      (state.data.zone || []).map(z => `<option value="${z.id}" ${z.id === val ? 'selected' : ''}>${escape(z.nome)}</option>`).join('') + '</select>';
+  } else if (f.type === 'multi-zone') {
+    const selectedIds = Array.isArray(val) ? val : [];
+    const zone = state.data.zone || [];
+    input = `<select id="${id}" multiple size="${Math.min(6, Math.max(2, zone.length))}">` +
+      zone.map(z => `<option value="${z.id}" ${selectedIds.includes(z.id) ? 'selected' : ''}>${escape(z.nome)}</option>`).join('') + '</select>';
+  } else if (f.type === 'select-tag') {
+    input = `<select id="${id}"><option value="">— Seleziona —</option>` +
+      state.data.tagNfc.map(t => `<option value="${t.id}" ${t.id === val ? 'selected' : ''}>${escape(t.descrizione || t.codice_nfc)}</option>`).join('') + '</select>';
+  } else if (f.type === 'multi-gruppi') {
+    const selectedIds = Array.isArray(val) ? val : [];
+    input = `<select id="${id}" multiple size="${Math.min(5, state.data.gruppiUtenti.length || 1)}">` +
+      state.data.gruppiUtenti.map(g => `<option value="${g.id}" ${selectedIds.includes(g.id) ? 'selected' : ''}>${escape(g.nome)}</option>`).join('') + '</select>';
+  } else if (f.type === 'datetime-local') {
+    const v = val ? new Date(val).toISOString().slice(0, 16) : '';
+    input = `<input type="datetime-local" id="${id}" value="${v}">`;
+  } else if (f.type === 'password') {
+    // Default visibile (admin deve poter copiare la password e darla all'utente)
+    input = `<div class="input-group">
+      <div class="password-wrap">
+        <input type="text" id="${id}" value="${escape(val)}" ${placeholder} autocomplete="off">
+        <button type="button" class="eye-btn" onclick="togglePassword('${id}', this)" title="Mostra/nascondi">${I.eye}</button>
+      </div>
+      ${f.withGenerate ? `<button type="button" class="gen-btn" onclick="generateForField('${id}')">Genera</button>` : ''}
+    </div>`;
+  } else {
+    const t = f.type || 'text';
+    const ml = f.maxlength ? `maxlength="${f.maxlength}"` : '';
+    input = `<input type="${t}" id="${id}" value="${escape(val)}" ${ml} ${placeholder}>`;
+  }
+
+  return `<div class="field ${fullCls}" ${condAttr}>
+    <label for="${id}">${escape(f.label)}${reqMark}</label>
+    ${input}
+  </div>`;
+}
+
+async function saveForm(id) {
+  const cfg = SECTIONS[state.currentSection];
+  const data = {};
+  const virtual = {}; // campi che iniziano con _ vanno in storage separato
+
+  for (const f of cfg.formFields || []) {
+    if (f.section) continue;
+    const el = document.getElementById('f-' + f.key);
+    if (!el) continue;
+    let value;
+    if (f.type === 'checkbox') value = el.checked;
+    else if (f.type === 'select-sino') value = el.value === 'true';
+    else if (f.type === 'multi-gruppi' || f.type === 'multi-zone') value = Array.from(el.selectedOptions).map(o => o.value);
+    else if (f.type === 'datetime-local') value = el.value ? new Date(el.value).toISOString() : null;
+    else if (f.type === 'date') value = el.value || null;
+    else if (f.key === 'latitudine' || f.key === 'longitudine') value = el.value ? parseFloat(el.value) : null;
+    else value = el.value || null;
+
+    if (f.key.startsWith('_')) virtual[f.key] = value;
+    else data[f.key] = value;
+  }
+
+  // Validazione
+  const errors = [];
+  for (const f of cfg.formFields || []) {
+    if (f.section) continue;
+    const isVirtual = f.key.startsWith('_');
+    const v = isVirtual ? virtual[f.key] : data[f.key];
+    let req = f.required;
+    if (f.requireWhen && virtual[f.requireWhen]) req = true;
+    if (req && !v && f.type !== 'checkbox') {
+      errors.push(`• ${f.label} è obbligatorio`);
+    }
+  }
+  // Per le credenziali nuove, password almeno 4 caratteri (sì, è un demo)
+  if ((virtual._password && virtual._password.length < 4) ||
+      (virtual._portale_attivo && virtual._portale_password && virtual._portale_password.length < 4)) {
+    errors.push('• La password deve avere almeno 4 caratteri');
+  }
+  // Validazione speciale per Cliente: serve almeno uno fra ragione_sociale e cognome
+  if (state.currentSection === 'clienti') {
+    const hasRagSoc = data.ragione_sociale && data.ragione_sociale.trim();
+    const hasCognome = data.cognome && data.cognome.trim();
+    if (!hasRagSoc && !hasCognome) {
+      errors.push('• Indica almeno la Ragione Sociale (per aziende) o il Cognome (per persone)');
+    }
+  }
+  if (errors.length) {
+    alert('Controlla i campi:\n\n' + errors.join('\n'));
+    return;
+  }
+
+  // Special: checkin manualmente creato dal web
+  if (state.currentSection === 'checkins' && !id) {
+    data.manuale = true;
+    data.ora_ricezione = nowISO();
+    data.client_uuid = uid();
+    data.ip_address = 'web-admin';
+  }
+
+  const list = state.data[state.currentSection];
+  let saved;
+  if (id) {
+    const idx = list.findIndex(r => r.id === id);
+    if (idx >= 0) {
+      list[idx] = {...list[idx], ...data, modificato_il: nowISO()};
+      saved = list[idx];
+    }
+  } else {
+    if (data.attivo === undefined && cfg.formFields.some(f => f.key === 'attivo')) data.attivo = true;
+    saved = {id: uid(), ...data, creato_il: nowISO()};
+    list.unshift(saved);
+  }
+  await saveSection(state.currentSection);
+
+  // Crea azienda associata se l'utente ha spuntato "_anche_azienda" sulla creazione di un Cliente
+  let createdAzienda = null;
+  if (!id && state.currentSection === 'clienti' && virtual._anche_azienda && virtual._az_ragione_sociale) {
+    createdAzienda = {
+      id: uid(),
+      attivo: true,
+      cliente_id: saved.id,
+      ragione_sociale: virtual._az_ragione_sociale,
+      partita_iva: virtual._az_partita_iva || null,
+      codice_fiscale: virtual._az_codice_fiscale || null,
+      indirizzo: virtual._az_indirizzo || null,
+      paese: virtual._az_paese || null,
+      provincia: virtual._az_provincia || null,
+      cap: virtual._az_cap || null,
+      telefono: virtual._az_telefono || null,
+      email: virtual._az_email || null,
+      creato_il: nowISO(),
+    };
+    state.data.aziende.unshift(createdAzienda);
+    await saveSection('aziende');
+  }
+
+  // Sync Utenti collegati
+  let credsCreated = null;
+  if (state.currentSection === 'vigilantes' && virtual._username) {
+    credsCreated = await syncVigilanteUtente(saved, virtual);
+  } else if (state.currentSection === 'clienti' && virtual._portale_attivo && virtual._portale_username) {
+    credsCreated = await syncClienteUtente(saved, virtual);
+  }
+
+  // Mostra banner credenziali se è una creazione nuova
+  if (!id && credsCreated) {
+    showCredentialsConfirmation(credsCreated, state.currentSection === 'vigilantes' ? 'vigilante' : 'cliente');
+    return;
+  }
+
+  // Se siamo dentro un flusso "inline" (es. nuovo cliente → ho aggiunto azienda),
+  // torna al modal padre invece di chiudere
+  if (window._modalStack && window._modalStack.length > 0) {
+    const prev = window._modalStack.pop();
+    state.currentSection = prev.section;
+    closeModal();
+    showToast(`✓ ${cfg.singular} salvato`);
+    if (prev.recordId) {
+      setTimeout(() => openForm(prev.recordId), 80);
+    } else {
+      renderSection();
+    }
+    return;
+  }
+
+  // Caso normale: chiudi e rinfresca la lista
+  // MA: se ho appena creato un nuovo Cliente/Azienda/Zona, riapri il modal in edit mode
+  // così l'utente può subito aggiungere figli
+  const autoReopenSections = ['clienti', 'aziende', 'zone'];
+  if (!id && saved && autoReopenSections.includes(state.currentSection)) {
+    closeModal();
+    if (createdAzienda) {
+      showToast(`✓ Cliente + Azienda "${createdAzienda.ragione_sociale}" creati. Aggiungi le strutture.`);
+    } else {
+      showToast(`✓ ${cfg.singular} creato. ${state.currentSection === 'clienti' ? "Aggiungi un'azienda" : 'Aggiungi le strutture'}`);
+    }
+    setTimeout(() => openForm(saved.id), 100);
+    return;
+  }
+
+  closeModal();
+  renderSection();
+}
+
+async function syncVigilanteUtente(vigilante, virtual) {
+  let utente = state.data.utenti.find(u => u.vigilante_id === vigilante.id);
+  if (utente) {
+    utente.username = virtual._username;
+    if (virtual._password) utente.password = virtual._password;
+    utente.nome = vigilante.nome || '';
+    utente.cognome = vigilante.cognome || '';
+    utente.attivo = vigilante.attivo;
+    utente.modificato_il = nowISO();
+  } else {
+    utente = {
+      id: uid(),
+      username: virtual._username,
+      password: virtual._password,
+      nome: vigilante.nome || '',
+      cognome: vigilante.cognome || '',
+      cliente_id: null,
+      vigilante_id: vigilante.id,
+      gruppi_ids: [],
+      attivo: true,
+      creato_il: nowISO(),
+    };
+    state.data.utenti.unshift(utente);
+  }
+  await saveSection('utenti');
+  return {username: utente.username, password: utente.password};
+}
+
+async function syncClienteUtente(cliente, virtual) {
+  let utente = state.data.utenti.find(u => u.cliente_id === cliente.id);
+  if (utente) {
+    utente.username = virtual._portale_username;
+    if (virtual._portale_password) utente.password = virtual._portale_password;
+    utente.modificato_il = nowISO();
+  } else {
+    utente = {
+      id: uid(),
+      username: virtual._portale_username,
+      password: virtual._portale_password,
+      nome: '',
+      cognome: clienteDisplay(cliente),
+      cliente_id: cliente.id,
+      vigilante_id: null,
+      gruppi_ids: [],
+      attivo: true,
+      creato_il: nowISO(),
+    };
+    state.data.utenti.unshift(utente);
+  }
+  await saveSection('utenti');
+  return {username: utente.username, password: utente.password};
+}
+
+function showCredentialsConfirmation(creds, role) {
+  const what = role === 'vigilante' ? "all'app mobile sul telefono" : 'al portale clienti';
+  document.getElementById('modal').innerHTML = `
+    <div class="modal-header">
+      <h2>Credenziali create</h2>
+      <button onclick="closeModalAndRender()" title="Chiudi">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="creds-banner">
+        <h4>Da consegnare al ${role}</h4>
+        <p>Conserva queste credenziali (non potrai recuperarle in chiaro dopo). Il ${role} le userà per accedere ${what}.</p>
+        <div class="creds-box">
+          <div class="row"><strong>Username</strong> <code>${escape(creds.username)}</code></div>
+          <div class="row"><strong>Password</strong> <code>${escape(creds.password)}</code></div>
+        </div>
+        <button class="copy-btn" onclick="copyCreds(this, '${escape(creds.username)}', '${escape(creds.password)}')">${I.copy}<span>Copia credenziali</span></button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="left"></div>
+      <div class="right">
+        <button class="btn btn-primary" onclick="closeModalAndRender()">OK</button>
+      </div>
+    </div>
+  `;
+}
+
+function closeModalAndRender() {
+  closeModal();
+  renderSection();
+}
+
+function copyCreds(btn, username, password) {
+  const text = `Username: ${username}\nPassword: ${password}`;
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); try { document.execCommand('copy'); } catch (_) {}
+    document.body.removeChild(ta);
+  };
+  const ok = () => {
+    btn.classList.add('copied');
+    const span = btn.querySelector('span');
+    if (span) { const orig = span.textContent; span.textContent = 'Copiato ✓';
+      setTimeout(() => { span.textContent = orig; btn.classList.remove('copied'); }, 1600);
+    }
+  };
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(ok).catch(() => { fallback(); ok(); });
+  } else {
+    fallback(); ok();
+  }
+}
+
+function togglePassword(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.type === 'password') { el.type = 'text'; btn.innerHTML = I.eye; }
+  else { el.type = 'password'; btn.innerHTML = I.eyeOff; }
+}
+
+function generatePassword(len = 10) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  const arr = new Uint8Array(len);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(arr);
+  } else {
+    for (let i = 0; i < len; i++) arr[i] = Math.floor(Math.random() * 256);
+  }
+  let p = '';
+  for (let i = 0; i < len; i++) p += chars[arr[i] % chars.length];
+  return p;
+}
+
+function generateForField(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = generatePassword(10);
+  el.type = 'text';
+  el.focus();
+  el.select();
+}
+
+function updateConditionalFields() {
+  // Campi
+  document.querySelectorAll('.field[data-requires]').forEach(field => {
+    const reqKey = field.getAttribute('data-requires');
+    const cb = document.getElementById('f-' + reqKey);
+    field.classList.toggle('field-hidden', !cb || !cb.checked);
+  });
+  // Sezioni (header) classiche
+  document.querySelectorAll('.form-section[data-requires-section]').forEach(section => {
+    const reqKey = section.getAttribute('data-requires-section');
+    const cb = document.getElementById('f-' + reqKey);
+    section.classList.toggle('section-hidden', !cb || !cb.checked);
+  });
+  // Card inner (layout 2-cols)
+  document.querySelectorAll('.form-card-inner[data-requires-section]').forEach(inner => {
+    const reqKey = inner.getAttribute('data-requires-section');
+    const cb = document.getElementById('f-' + reqKey);
+    inner.classList.toggle('section-hidden', !cb || !cb.checked);
+  });
+}
+
+async function deleteRecord(id) {
+  if (!confirm('Eliminare definitivamente questo record?')) return;
+  state.data[state.currentSection] = state.data[state.currentSection].filter(r => r.id !== id);
+  await saveSection(state.currentSection);
+  // Cancella anche da cloud
+  if (CloudSync.isReady() && CloudSync.SYNCED.includes(state.currentSection)) {
+    CloudSync.remove(state.currentSection, id);
+  }
+  closeModal();
+  renderSection();
+}
+
+// ============================================================
+// EXPORT CSV
+// ============================================================
+function exportCsv() {
+  const cfg = SECTIONS[state.currentSection];
+  const data = getFilteredSortedData();
+  const headers = cfg.columns.map(c => c.label);
+  const rows = data.map(row => cfg.columns.map(col => {
+    const v = String(formatCell(row, col) ?? '');
+    return /[",\n;]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+  }));
+  const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+  const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${state.currentSection}_${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// SEED
+// ============================================================
+async function maybeSeed() {
+  const total = SECTION_ORDER.reduce((s, k) => s + (state.data[k]?.length || 0), 0);
+  if (total > 0) return;
+
+  // ===== Tipi Strutture =====
+  const tipi = ['Abitazione','Condominio','Capannone','Azienda','Cantiere','Ufficio','Negozio','B&B','Albergo']
+    .map(nome => ({id: uid(), nome, creato_il: nowISO()}));
+  state.data.tipiStrutture = tipi;
+  const tipoId = nome => tipi.find(t => t.nome === nome)?.id;
+
+  // ===== Zone =====
+  const zone = [
+    {nome: 'Zona Nord Montebelluna', descrizione: 'Quartieri nord e industriali fino al fiume Piave'},
+    {nome: 'Zona Treviso Centro', descrizione: 'Centro storico Treviso e zone limitrofe'},
+    {nome: 'Zona Asolo', descrizione: 'Colli asolani e comuni vicini (Maser, Cornuda)'},
+    {nome: 'Zona Torino', descrizione: 'Clienti fuori provincia: Torino'},
+  ].map(z => ({id: uid(), creato_il: nowISO(), ...z}));
+  state.data.zone = zone;
+  const zonaId = nome => zone.find(z => z.nome === nome)?.id;
+
+  // ===== Clienti (persone, proprietari) =====
+  const clienti = [
+    {cognome: 'Rossi', nome: 'Mario', codice_fiscale: 'RSSMRA70A01H501Z', telefono: '333 1234567', email: 'mario.rossi@email.it', note: 'Cliente storico, 2 aziende'},
+    {cognome: 'Garbuio', nome: 'Mirko', telefono: '348 9988776', email: 'mirko.garbuio@agraria.it'},
+    {cognome: 'Andreola', nome: 'Thomas', telefono: '344 1138033', email: 'thomas.andreola@gmail.com'},
+    {cognome: 'Boglione', nome: 'Alessandro', email: 'alessandro@basicnet.com', note: 'Referente Robe di Kappa Torino'},
+    {cognome: 'Bianchi', nome: 'Lucia', telefono: '347 5566778', email: 'lucia.bianchi@isoplam.it', note: 'Referente ISOPLAM Maser'},
+    {cognome: 'Verdi', nome: 'Paolo', telefono: '339 1122334', email: 'paolo@grtech.it'},
+    {cognome: 'Neri', nome: 'Antonio', telefono: '331 9988123', email: 'a.neri@snam.it'},
+    {cognome: 'AKU', nome: 'Italia (referente)', email: 'sicurezza@aku.it', note: 'Referente sede principale Montebelluna'},
+  ].map(c => ({id: uid(), attivo: true, creato_il: nowISO(), ...c}));
+  state.data.clienti = clienti;
+  const clienteId = cognome => clienti.find(c => c.cognome === cognome)?.id;
+
+  // ===== Aziende (un cliente può avere più aziende) =====
+  const aziende = [
+    {cliente_id: clienteId('Rossi'), ragione_sociale: 'Rossi Costruzioni SRL', partita_iva: '01234567890', indirizzo: 'Via Roma, 12', paese: 'Montebelluna', provincia: 'TV', cap: '31044'},
+    {cliente_id: clienteId('Rossi'), ragione_sociale: 'Pizzeria Rossi', partita_iva: '09876543210', indirizzo: 'Via Garibaldi, 8', paese: 'Montebelluna', provincia: 'TV', cap: '31044'},
+    {cliente_id: clienteId('Garbuio'), ragione_sociale: 'AGRARIA GARBUIO MIRKO', partita_iva: '02345678901', indirizzo: 'Via Castellana', paese: 'Montebelluna', provincia: 'TV'},
+    {cliente_id: clienteId('Andreola'), ragione_sociale: 'ANDREOLA THOMAS', codice_fiscale: 'NDRTMS80A01A001Z', indirizzo: 'Via Colmarion, 1', paese: 'Asolo', provincia: 'TV'},
+    {cliente_id: clienteId('Boglione'), ragione_sociale: 'BasicNet S.p.A', partita_iva: '03456789012', indirizzo: 'Largo Maurizio Vitale', paese: 'Torino', provincia: 'TO'},
+    {cliente_id: clienteId('Bianchi'), ragione_sociale: 'ISOPLAM SRL', partita_iva: '04567890123', indirizzo: 'Via E. Mattei', paese: 'Maser', provincia: 'TV'},
+    {cliente_id: clienteId('Verdi'), ragione_sociale: 'GR-TECH srl', partita_iva: '05678901234', indirizzo: 'Via Ferraris Galileo', paese: 'Montebelluna', provincia: 'TV'},
+    {cliente_id: clienteId('Neri'), ragione_sociale: 'SNAM S.p.A.', partita_iva: '06678901234', indirizzo: 'Via dei Tre Comuni'},
+    {cliente_id: clienteId('AKU'), ragione_sociale: 'AKU ITALIA SRL', partita_iva: '07788901234', indirizzo: 'Via Schiavonesca Priula', paese: 'Montebelluna', provincia: 'TV'},
+  ].map(a => ({id: uid(), attivo: true, creato_il: nowISO(), ...a}));
+  state.data.aziende = aziende;
+  const aziendaId = ragsoc => aziende.find(a => a.ragione_sociale === ragsoc)?.id;
+
+  // ===== Strutture (appartengono a un'azienda, hanno una zona) =====
+  const strutture = [
+    {azienda_id: aziendaId('AKU ITALIA SRL'), tipo_struttura_id: tipoId('Capannone'), zona_id: zonaId('Zona Nord Montebelluna'),
+      nome: 'SEDE PRINCIPALE', indirizzo: 'Via Schiavonesca Priula, 65 Montebelluna', latitudine: 45.7595, longitudine: 12.0454},
+    {azienda_id: aziendaId('BasicNet S.p.A'), tipo_struttura_id: tipoId('Azienda'), zona_id: zonaId('Zona Torino'),
+      nome: 'Robe di Kappa', indirizzo: 'Largo Maurizio Vitale, Torino', latitudine: 45.0793, longitudine: 7.6975},
+    {azienda_id: aziendaId('ISOPLAM SRL'), tipo_struttura_id: tipoId('Azienda'), zona_id: zonaId('Zona Asolo'),
+      nome: 'ISOPLAM Maser', indirizzo: 'Via E. Mattei, Maser', latitudine: 45.812, longitudine: 11.943},
+    {azienda_id: aziendaId('GR-TECH srl'), tipo_struttura_id: tipoId('Azienda'), zona_id: zonaId('Zona Nord Montebelluna'),
+      nome: 'GR-TECH sede', indirizzo: 'Via Ferraris Galileo, 56 Montebelluna', latitudine: 45.778, longitudine: 11.940},
+    {azienda_id: aziendaId('SNAM S.p.A.'), tipo_struttura_id: tipoId('Azienda'), zona_id: zonaId('Zona Treviso Centro'),
+      nome: 'SNAM Tre Comuni', indirizzo: 'Via dei Tre Comuni Treviso', latitudine: 45.7095, longitudine: 12.0746},
+    {azienda_id: aziendaId('ANDREOLA THOMAS'), tipo_struttura_id: tipoId('Abitazione'), zona_id: zonaId('Zona Asolo'),
+      nome: 'Abitazione Andreola', indirizzo: 'Via Colmarion, 1 Asolo', latitudine: 45.800, longitudine: 11.913},
+    {azienda_id: aziendaId('AGRARIA GARBUIO MIRKO'), tipo_struttura_id: tipoId('Capannone'), zona_id: zonaId('Zona Nord Montebelluna'),
+      nome: 'Capannone Castellana', indirizzo: 'Via Castellana, Montebelluna', latitudine: 45.776, longitudine: 12.040},
+    {azienda_id: aziendaId('Rossi Costruzioni SRL'), tipo_struttura_id: tipoId('Cantiere'), zona_id: zonaId('Zona Nord Montebelluna'),
+      nome: 'Cantiere via Mercato', indirizzo: 'Via Mercato Vecchio, 5 Montebelluna', latitudine: 45.775, longitudine: 12.044},
+    {azienda_id: aziendaId('Pizzeria Rossi'), tipo_struttura_id: tipoId('Negozio'), zona_id: zonaId('Zona Nord Montebelluna'),
+      nome: 'Pizzeria centro', indirizzo: 'Via Garibaldi, 8 Montebelluna', latitudine: 45.776, longitudine: 12.045},
+  ].map(s => ({id: uid(), attivo: true, creato_il: nowISO(), ...s}));
+  state.data.strutture = strutture;
+  const strId = nome => strutture.find(s => s.nome === nome)?.id;
+
+  // ===== Vigilantes (con zone assegnate) =====
+  const vigilantes = [
+    {cognome: 'basic', nome: 'kappa', matricola: 'V0001', zone_ids: [zonaId('Zona Torino')]},
+    {cognome: 'DELTA 5', nome: '', matricola: 'V0050', zone_ids: [zonaId('Zona Nord Montebelluna'), zonaId('Zona Asolo')]},
+    {cognome: 'DELTA 1', nome: '', matricola: 'V0010', zone_ids: [zonaId('Zona Nord Montebelluna')]},
+    {cognome: 'BUZIOL', nome: 'KRISTIAN', matricola: 'V0070', zone_ids: [zonaId('Zona Treviso Centro')]},
+    {cognome: 'PATTUGLIA', nome: 'VIS', matricola: 'V0099', zone_ids: []},  // caposquadra: vede tutte
+  ].map(v => ({id: uid(), attivo: true, creato_il: nowISO(), ...v}));
+  state.data.vigilantes = vigilantes;
+  const vigId = cognome => vigilantes.find(v => v.cognome === cognome)?.id;
+
+  // ===== Tag NFC =====
+  const tags = [
+    {struttura_id: strId('SEDE PRINCIPALE'), descrizione: 'Ingresso principale', codice_nfc: '0411223344A1B2'},
+    {struttura_id: strId('SEDE PRINCIPALE'), descrizione: 'Porta retro', codice_nfc: '0411223344A1B5'},
+    {struttura_id: strId('Robe di Kappa'), descrizione: '13 - ROOF GARDEN', codice_nfc: '04AB1213AA0001'},
+    {struttura_id: strId('Robe di Kappa'), descrizione: '12 - CASA ALESSANDRO BOGLIONE', codice_nfc: '04AB1213AA0002'},
+    {struttura_id: strId('Robe di Kappa'), descrizione: '11 - BAGNO 1° PIANO', codice_nfc: '04AB1213AA0003'},
+    {struttura_id: strId('SNAM Tre Comuni'), descrizione: 'TAG 1 Ingresso', codice_nfc: '04CC0001AB0001'},
+    {struttura_id: strId('SNAM Tre Comuni'), descrizione: 'TAG 2 Cancello posteriore', codice_nfc: '04CC0001AB0002'},
+    {struttura_id: strId('Cantiere via Mercato'), descrizione: 'Cancello cantiere', codice_nfc: '04DD0001CA0001'},
+    {struttura_id: strId('Pizzeria centro'), descrizione: 'Porta retro pizzeria', codice_nfc: '04DD0002CA0001'},
+    {struttura_id: strId('ISOPLAM Maser'), descrizione: 'TAG Uffici', codice_nfc: '04A2B3C4D5E6F7'},
+    {struttura_id: strId('ISOPLAM Maser'), descrizione: 'TAG Capannone produzione', codice_nfc: '04A2B3C4D5E700'},
+  ].map(t => ({id: uid(), creato_il: nowISO(), ...t}));
+  state.data.tagNfc = tags;
+  const tagIdByDesc = desc => tags.find(t => t.descrizione === desc)?.id;
+
+  // ===== Check-ins di esempio =====
+  const delta5 = vigId('DELTA 5');
+  const buziol = vigId('BUZIOL');
+  const kappa = vigId('basic');
+  const nowMs = Date.now();
+  const hourAgo = h => new Date(nowMs - h * 3600000).toISOString();
+  state.data.checkins = [
+    // Notte scorsa: Mario Rossi - i suoi clienti vedranno questi
+    {tag_id: tagIdByDesc('Cancello cantiere'), vigilante_id: delta5, latitudine: 45.7752, longitudine: 12.0438, manuale: false, note: 'Tutto regolare', ora_scansione: hourAgo(8), ora_ricezione: hourAgo(8)},
+    {tag_id: tagIdByDesc('Porta retro pizzeria'), vigilante_id: delta5, latitudine: 45.7760, longitudine: 12.0451, manuale: false, ora_scansione: hourAgo(7.5), ora_ricezione: hourAgo(7.5)},
+    {tag_id: tagIdByDesc('Cancello cantiere'), vigilante_id: delta5, latitudine: 45.7755, longitudine: 12.0440, manuale: false, ora_scansione: hourAgo(3), ora_ricezione: hourAgo(3)},
+
+    // AKU sede
+    {tag_id: tagIdByDesc('Ingresso principale'), vigilante_id: delta5, latitudine: 45.7593, longitudine: 12.0457, manuale: false, ora_scansione: hourAgo(6.5), ora_ricezione: hourAgo(6.5)},
+    {tag_id: tagIdByDesc('Porta retro'), vigilante_id: delta5, latitudine: 45.7596, longitudine: 12.0452, manuale: false, ora_scansione: hourAgo(6.4), ora_ricezione: hourAgo(6.4)},
+
+    // BasicNet Torino (giro di kappa.basic)
+    {tag_id: tagIdByDesc('13 - ROOF GARDEN'), vigilante_id: kappa, latitudine: 45.0790, longitudine: 7.6976, manuale: false, ora_scansione: hourAgo(10), ora_ricezione: hourAgo(10)},
+    {tag_id: tagIdByDesc('12 - CASA ALESSANDRO BOGLIONE'), vigilante_id: kappa, latitudine: 45.0795, longitudine: 7.6975, manuale: false, ora_scansione: hourAgo(9.8), ora_ricezione: hourAgo(9.8)},
+    {tag_id: tagIdByDesc('11 - BAGNO 1° PIANO'), vigilante_id: kappa, latitudine: 45.0792, longitudine: 7.6976, manuale: false, ora_scansione: hourAgo(9.5), ora_ricezione: hourAgo(9.5)},
+
+    // SNAM (BUZIOL, zona Treviso)
+    {tag_id: tagIdByDesc('TAG 1 Ingresso'), vigilante_id: buziol, latitudine: 45.7093, longitudine: 12.0746, manuale: false, note: 'Luce esterna fulminata segnalata', ora_scansione: hourAgo(5), ora_ricezione: hourAgo(5)},
+    {tag_id: tagIdByDesc('TAG 2 Cancello posteriore'), vigilante_id: buziol, latitudine: 45.7095, longitudine: 12.0744, manuale: false, ora_scansione: hourAgo(4.8), ora_ricezione: hourAgo(4.8)},
+  ].map(c => ({id: uid(), client_uuid: uid(), ip_address: '37.162.50.216', ...c}));
+
+  // ===== Gruppi utenti =====
+  state.data.gruppiUtenti = [
+    {id: uid(), nome: 'AMMINISTRATORE', descrizione: 'Accesso completo al gestionale', creato_il: nowISO()},
+    {id: uid(), nome: 'OPERATORE', descrizione: 'Inserimento e modifica anagrafiche', creato_il: nowISO()},
+    {id: uid(), nome: 'CLIENTE', descrizione: 'Solo visualizzazione del proprio portale', creato_il: nowISO()},
+  ];
+  const grpId = nome => state.data.gruppiUtenti.find(g => g.nome === nome)?.id;
+
+  // ===== Utenti =====
+  // Admin
+  // Vigilantes (associati al loro vigilante_id)
+  // Clienti (associati al loro cliente_id)
+  state.data.utenti = [
+    // Admin
+    {nome: 'Tecnico', cognome: 'VIS', username: 'tecnico', password: 'tecnico123', email: 'tecnico@visgroup.it', gruppi_ids: [grpId('AMMINISTRATORE')], cliente_id: null, vigilante_id: null},
+
+    // Vigilantes
+    {nome: 'kappa', cognome: 'basic', username: 'kappa.basic', password: 'kb2024Az', gruppi_ids: [], vigilante_id: vigId('basic'), cliente_id: null},
+    {nome: '', cognome: 'DELTA 5', username: 'delta5', password: 'd5Pass24', gruppi_ids: [], vigilante_id: vigId('DELTA 5'), cliente_id: null},
+    {nome: '', cognome: 'DELTA 1', username: 'delta1', password: 'd1Pass24', gruppi_ids: [], vigilante_id: vigId('DELTA 1'), cliente_id: null},
+    {nome: 'Kristian', cognome: 'BUZIOL', username: 'buziol', password: 'buz2024X', gruppi_ids: [], vigilante_id: vigId('BUZIOL'), cliente_id: null},
+
+    // Clienti (con accesso portale Owl-Check)
+    {nome: 'Mario', cognome: 'Rossi', username: 'mario.rossi', password: 'cliente2026', email: 'mario.rossi@email.it', gruppi_ids: [grpId('CLIENTE')], cliente_id: clienteId('Rossi'), vigilante_id: null},
+    {nome: 'Alessandro', cognome: 'Boglione', username: 'a.boglione', password: 'cliente2026', email: 'alessandro@basicnet.com', gruppi_ids: [grpId('CLIENTE')], cliente_id: clienteId('Boglione'), vigilante_id: null},
+    {nome: 'Antonio', cognome: 'Neri', username: 'a.neri', password: 'cliente2026', email: 'a.neri@snam.it', gruppi_ids: [grpId('CLIENTE')], cliente_id: clienteId('Neri'), vigilante_id: null},
+  ].map(u => ({id: uid(), attivo: true, creato_il: nowISO(), ...u}));
+
+  // Accessi sintetici
+  const baseTime = Date.now();
+  state.data.accessi = state.data.utenti.slice(0, 6).map((u, i) => ({
+    id: uid(), utente_id: u.id,
+    quando: new Date(baseTime - i * 3600000).toISOString(),
+    ip_address: ['109.53.198.127', '37.162.50.216', '78.209.49.24', '93.144.21.10'][i % 4],
+    successo: true,
+  }));
+
+  // Salva tutto
+  for (const k of SECTION_ORDER) await saveSection(k);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  try {
+    await loadAll();
+
+    // 1. Aspetta Firebase (max 5s, poi prosegue offline)
+    let cloudReady = false;
+    try {
+      await Promise.race([
+        CloudSync.waitReady(),
+        new Promise(r => setTimeout(r, 5000)),
+      ]);
+      cloudReady = CloudSync.isReady();
+    } catch (_) {}
+
+    if (cloudReady) {
+      // 2. Avvia listener real-time. I cambi remoti aggiornano state.data
+      await CloudSync.start(state.data, sectionKey => {
+        // Quando il cloud aggiorna, rinfresca anche localStorage e UI
+        Storage.set('vis:' + sectionKey, JSON.stringify(state.data[sectionKey]));
+        if (sectionKey === state.currentSection) renderSection();
+        else if (state.currentSection === 'reportCheckins' && sectionKey === 'checkins') renderSection();
+      });
+      // Aspetta un attimo che il primo snapshot arrivi
+      await new Promise(r => setTimeout(r, 600));
+    }
+
+    // 3. Seed solo se il cloud è vuoto E anche il locale lo è
+    await maybeSeed();
+
+    // 4. Se abbiamo seedato locale ma cloud era vuoto, push iniziale
+    if (cloudReady) {
+      for (const k of SECTION_ORDER) {
+        if (CloudSync.SYNCED.includes(k) && state.data[k]?.length) {
+          CloudSync.upsertMany(k, state.data[k]);
+        }
+      }
+    }
+
+    switchSection('clienti');
+    updateSyncStatus();
+  } catch (e) {
+    console.error('[VIS init error]', e);
+    const main = document.getElementById('content');
+    if (main) {
+      main.innerHTML = `<div style="padding:32px;color:#d9534f;font-family:monospace">
+        <h2 style="margin-bottom:12px;font-family:inherit">Errore di inizializzazione</h2>
+        <pre style="white-space:pre-wrap;font-size:12px">${escape(e.message || String(e))}\n\n${escape(e.stack || '')}</pre>
+        <p style="margin-top:16px;color:#5d6c7b;font-family:sans-serif">Se vedi questo, mandami screenshot del messaggio. Probabilmente è un problema di compatibilità del browser.</p>
+      </div>`;
+    }
+  }
+}
+
+// Close modal on Escape (NON su click overlay, per evitare chiusure accidentali mentre si scrive)
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !document.getElementById('modal-overlay').hidden) closeModal();
+});
+// NIENTE handler sul click overlay: il modal si chiude solo con X o Annulla.
+
+init();
+</script>
+</body>
+</html>
